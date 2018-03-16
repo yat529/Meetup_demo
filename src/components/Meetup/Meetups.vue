@@ -8,7 +8,7 @@
           <v-card-title primary-title>
             <div>
               <h3 class="headline mb-0 primary--text">{{ item.title }}</h3>
-              <div class="mb-2">{{ item.date }}</div>
+              <div class="mb-2">{{ item.date | DateFilter}}</div>
               <div class="content">{{ item.description }}</div>
             </div>
           </v-card-title>

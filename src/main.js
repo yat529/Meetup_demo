@@ -6,7 +6,11 @@ import router from './router'
 import Vuetify from 'vuetify'
 import 'vuetify/dist/vuetify.min.css'
 
+// import vuex store
 import {store} from './store'
+
+// import filters
+import DateFilter from './filter/date.js'
 
 // Theme Colors
 const ThemeColors = {
@@ -22,6 +26,8 @@ const ThemeColors = {
 Vue.use(Vuetify, {
   theme: ThemeColors
 })
+
+Vue.filter('DateFilter', DateFilter)
 
 Vue.config.productionTip = false
 
