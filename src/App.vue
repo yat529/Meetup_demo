@@ -1,0 +1,60 @@
+<template>
+  <v-app>
+    <v-navigation-drawer v-model="sideNav" temporary app>
+      <v-list>
+        <!-- list item -->
+        <v-list-tile v-for="item in menuItems" :key="item.title" router :to="item.link">
+          <v-list-tile-action>
+            <v-icon>{{ item.icon }}</v-icon>
+          </v-list-tile-action>
+          <v-list-tile-content>{{ item.title }}</v-list-tile-content>
+        </v-list-tile>
+        <!-- end -->
+      </v-list>
+    </v-navigation-drawer>
+
+    <v-toolbar class="primary" dark>
+      <v-toolbar-side-icon class="hidden-sm-and-up" @click.stop="sideNav = !sideNav"></v-toolbar-side-icon>
+      <v-toolbar-title>
+        <router-link to="/" tag="span" style="cursor: pointer">{{ title }}</router-link>
+      </v-toolbar-title>
+      <v-spacer></v-spacer>
+      <!-- Topbar Menu Buttons -->
+      <v-btn class="hidden-sm-and-down" v-for="item in menuItems" :key="item.title" router :to="item.link" flat large>
+        <v-icon left>{{ item.icon }}</v-icon>
+        {{ item.title }}
+      </v-btn>
+    </v-toolbar>
+
+    <v-content>
+      <router-view/>
+    </v-content>
+
+    <!-- <v-footer app class="primary" dark>
+      <v-layout row class="text-xs-center">
+        <v-flex >
+          <span>Meetup &copy; 2017</span>
+        </v-flex>
+      </v-layout>
+    </v-footer> -->
+  </v-app>
+</template>
+
+<script>
+export default {
+  data () {
+    return {
+      sideNav: false,
+      title: 'MeetUp',
+      menuItems: [
+        { icon: 'supervisor_account', title: 'View Meetups', link: '/meetups' },
+        { icon: 'room', title: 'Create Meetup', link: 'meetup/new' },
+        { icon: 'person', title: 'Profile', link: '/profile' },
+        { icon: 'face', title: 'Sign up', link: '/signup' },
+        { icon: 'lock_open', title: 'Sign in', link: '/signin' }
+      ]
+    }
+  },
+  name: 'App'
+}
+</script>
