@@ -14,13 +14,13 @@
     </v-navigation-drawer>
 
     <v-toolbar class="primary" dark>
-      <v-toolbar-side-icon class="hidden-sm-and-up" @click.stop="sideNav = !sideNav"></v-toolbar-side-icon>
+      <v-toolbar-side-icon class="hidden-md-and-up" @click.stop="sideNav = !sideNav"></v-toolbar-side-icon>
       <v-toolbar-title>
         <router-link to="/" tag="span" style="cursor: pointer">{{ title }}</router-link>
       </v-toolbar-title>
       <v-spacer></v-spacer>
       <!-- Topbar Menu Buttons -->
-      <v-btn class="hidden-sm-and-down" v-for="item in menuItems" :key="item.title" router :to="item.link" flat large>
+      <v-btn class="hidden-sm-and-down" v-for="item in menuItems" :key="item.title" router :to="item.link" flat>
         <v-icon left>{{ item.icon }}</v-icon>
         {{ item.title }}
       </v-btn>

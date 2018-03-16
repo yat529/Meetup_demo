@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <v-layout row wrap>
-      <v-flex xs3 v-for="item in meetups" :key="item.id" class="mr-3 mb-3">
+      <v-flex xs12 sm6 md4 xl3 v-for="item in meetups" :key="item.id" class="px-2 py-2">
         <v-card>
           <v-card-media :src="item.imageUrl" height="200px">
           </v-card-media>
