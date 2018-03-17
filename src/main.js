@@ -12,6 +12,11 @@ import {store} from './store'
 // import filters
 import DateFilter from './filter/date.js'
 
+import firebaseConfig from './firebase.js'
+import * as firebase from 'firebase'
+
+firebase.initializeApp(firebaseConfig)
+
 // Theme Colors
 const ThemeColors = {
   primary: '#1976D2',

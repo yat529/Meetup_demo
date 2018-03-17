@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
+import * as firebase from 'firebase'
 
 Vue.use(Vuex)
 
@@ -22,10 +23,11 @@ export const store = new Vuex.Store({
         description: 'Located two hours south of Sydney in the Southern Highlands of New South Wales, ...'
       }
     ],
-    user: {
-      id: 'nighthawk',
-      registeredMeetups: ['a']
-    }
+    user: null,
+    loading: false,
+    error: null,
+    successAlert: false,
+    errorAlet: false
   },
   getters: {
     // loadedMeetups and sort
@@ -45,12 +47,63 @@ export const store = new Vuex.Store({
           return meetup.id === meetupId
         })
       }
+    },
+    // menu items - vary by sign in status
+    menuItems (state) {
+      let menuItems = [
+        { icon: 'supervisor_account', title: 'View Meetups', link: '/meetups' },
+        { icon: 'room', title: 'Create Meetup', link: 'meetup/new' },
+        { icon: 'person', title: 'Profile', link: '/profile' },
+        { icon: 'face', title: 'Sign up', link: '/signup' },
+        { icon: 'lock_open', title: 'Sign in', link: '/signin' }
+      ]
+      if (state.user) {
+        menuItems = [
+          { icon: 'supervisor_account', title: 'View Meetups', link: '/meetups' },
+          { icon: 'room', title: 'Create Meetup', link: 'meetup/new' },
+          { icon: 'person', title: 'Profile', link: '/profile' }
+        ]
+      }
+      return menuItems
     }
   },
   mutations: {
     createMeetup (state, payload) {
       state.loadedMeetups.push(payload)
       console.log('date inserted')
+    },
+    initUser (state, newUser) {
+      newUser.registeredMeetups = []
+      state.user = newUser
+      console.log('new user meetup initiated')
+    },
+    signUserIn (state, user) {
+      user.registeredMeetups = []
+      state.user = user
+      console.log('user logged in')
+    },
+    signUserOut (state) {
+      state.user = null
+      console.log('user signed out')
+    },
+    setLoading (state, payload) {
+      state.loading = payload
+    },
+    setError (state, payload) {
+      state.error = payload
+    },
+    clearError (state) {
+      state.error = null
+    },
+    showSuccessAlert (state, payload) {
+      state.successAlert = payload
+    },
+    showErrorAlet (state, payload) {
+      state.errorAlet = payload
+    },
+    clearAlert (state) {
+      state.successAlert = false
+      state.errorAlet = false
     }
   },
   actions: {
@@ -64,6 +117,51 @@ export const store = new Vuex.Store({
         date: payload.date
       }
       context.commit('createMeetup', meetup)
+    },
+    onAccSignUp (context, user) {
+      context.commit('clearError')
+      context.commit('clearAlert')
+      context.commit('setLoading', true)
+      firebase.auth().createUserWithEmailAndPassword(user.email, user.password)
+        .then(user => {
+          context.commit('initUser', user)
+          context.commit('setLoading', false)
+          context.commit('showSuccessAlert', true)
+        })
+        .catch(error => {
+          console.log(error)
+          context.commit('setError', error)
+          context.commit('setLoading', false)
+          context.commit('showErrorAlet', true)
+        })
+    },
+    onUserLogIn (context, user) {
+      context.commit('clearError')
+      context.commit('clearAlert')
+      context.commit('setLoading', true)
+      firebase.auth().signInWithEmailAndPassword(user.email, user.password)
+        .then(user => {
+          context.commit('signUserIn', user)
+          context.commit('setLoading', false)
+          context.commit('showSuccessAlert', true)
+        })
+        .catch(error => {
+          console.log(error)
+          context.commit('setError', error)
+          context.commit('setLoading', false)
+          context.commit('showErrorAlet', true)
+        })
+    },
+    onUserSignOut (context) {
+      context.commit('setLoading', true)
+      firebase.auth().signOut()
+        .then(() => {
+          context.commit('signUserOut')
+        })
+        .catch(error => {
+          console.log(error)
+          context.commit('setError', error)
+        })
     }
   }
 })

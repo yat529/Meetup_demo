@@ -3,6 +3,13 @@
     <v-layout row>
       <v-flex xs12 sm6 offset-sm3>
         <v-card>
+          <loader v-if="loading"></loader>
+          <v-alert type="success" :value="showSuccessAlert" v-if="showSuccessAlert">
+              Login Successful
+          </v-alert>
+          <v-alert type="error" :value="showErrorAlet" v-if="showErrorAlet">
+              {{ errorMsg }}
+          </v-alert>
           <v-toolbar class="primary mb-3" dark>
             <v-toolbar-side-icon>
               <v-icon>person_add</v-icon>
@@ -10,7 +17,6 @@
             <v-toolbar-title>Join Meetup</v-toolbar-title>
           </v-toolbar>
           <v-form class="pb-4" ref="accSignupForm" @submit.prevent="onSignup">
-
             <v-layout row>
               <v-flex xs10 offset-xs1>
                 <v-card-text class="px-4 py-4">
@@ -45,28 +51,32 @@
                     v-if="checkPswLength"
                   ></v-text-field>
                 </v-card-text>
-
                 <v-btn large flat dark class="info" type="submit">CREATE ACCOUNT</v-btn>
               </v-flex>
-
-            </v-layout>
-            
+            </v-layout>          
           </v-form>
-        </v-card>
-        
+        </v-card>     
       </v-flex>
     </v-layout>
   </v-container>
 </template>
+
 <script>
 /* eslint-disable */
+import * as firebase from 'firebase'
+import loader from '@/components/common/loader'
+
 export default {
+  components: {
+    loader
+  },
   data () {
     return {
-      valid: false,
+      // valid: false,
       email: '',
       password: '',
       passwordToCompare: '',
+      // for show psw icon
       psw_show: false,
       psw_check_show: false
     }
@@ -91,17 +101,33 @@ export default {
     },
     checkPswLength () {
       return this.password.length >= 8
+    },
+    loading () {
+      return this.$store.state.loading
+    },
+    showSuccessAlert () {
+      return this.$store.state.successAlert
+    },
+    showErrorAlet () {
+      return this.$store.state.errorAlet
+    },
+    errorMsg () {
+      return this.$store.state.error.message
     }
   },
   methods: {
     onSignup () {
-      console.log(this.$refs.accSignupForm.validate())
-      // prepare user object for database
-      
+      if( this.$refs.accSignupForm.validate() ) {
+        let user = {
+          email: this.email,
+          password: this.password
+        }
+        this.$store.dispatch('onAccSignUp', user)
+      }
     }
   }
 }
 </script>
-<style lang="scss">
 
+<style lang="scss">
 </style>

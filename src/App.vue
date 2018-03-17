@@ -24,6 +24,10 @@
         <v-icon left>{{ item.icon }}</v-icon>
         {{ item.title }}
       </v-btn>
+      <v-btn class="hidden-sm-and-down" v-if="signedIn" flat @click="signOut">
+        <v-icon left>face</v-icon>
+        Sign out
+      </v-btn>
     </v-toolbar>
 
     <v-content>
@@ -45,14 +49,20 @@ export default {
   data () {
     return {
       sideNav: false,
-      title: 'MeetUp',
-      menuItems: [
-        { icon: 'supervisor_account', title: 'View Meetups', link: '/meetups' },
-        { icon: 'room', title: 'Create Meetup', link: 'meetup/new' },
-        { icon: 'person', title: 'Profile', link: '/profile' },
-        { icon: 'face', title: 'Sign up', link: '/signup' },
-        { icon: 'lock_open', title: 'Sign in', link: '/signin' }
-      ]
+      title: 'MeetUp'
+    }
+  },
+  methods: {
+    signOut () {
+      this.$store.dispatch('onUserSignOut')
+    }
+  },
+  computed: {
+    menuItems () {
+      return this.$store.getters.menuItems
+    },
+    signedIn () {
+      return this.$store.state.user !== null
     }
   },
   name: 'App'
