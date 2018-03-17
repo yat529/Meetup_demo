@@ -24,6 +24,7 @@ export const store = new Vuex.Store({
       // }
     ],
     user: null,
+    loadedMeetup: null,
     loading: false,
     error: null,
     successAlert: false,
@@ -40,14 +41,6 @@ export const store = new Vuex.Store({
     // featuredMeetups, first 5 of loadedMeetups
     featuredMeetups (state, getters) {
       return getters.loadedMeetups.slice(0, 5)
-    },
-    // load single meetup
-    loadedMeetup (state) {
-      return meetupId => {
-        return state.loadedMeetups.find(meetup => {
-          return meetup.id === meetupId
-        })
-      }
     },
     // load meetups for current user - display on the profile page
     myMeetups (state) {
@@ -68,7 +61,7 @@ export const store = new Vuex.Store({
       if (state.user) {
         menuItems = [
           { icon: 'supervisor_account', title: 'View Meetups', link: '/meetups' },
-          { icon: 'room', title: 'Create Meetup', link: 'meetup/new' },
+          { icon: 'room', title: 'Create Meetup', link: 'addmeetup' },
           { icon: 'person', title: 'Profile', link: '/profile' }
         ]
       }
@@ -90,6 +83,9 @@ export const store = new Vuex.Store({
         state.user.registeredMeetups = []
         state.user.registeredMeetups.push(payload)
       }
+    },
+    loadMeetup (state, payload) {
+      state.loadedMeetup = state.loadedMeetups.find(meetup => meetup.id === payload.id)
     },
     initUser (state, newUser) {
       newUser.registeredMeetups = []
@@ -138,7 +134,7 @@ export const store = new Vuex.Store({
       firebase.database().ref('meetups').push(meetup)
         .then(reference => {
           console.log(reference)
-          // meetup.id = reference.key
+          meetup.id = reference.key
           // update userMeetups lists
           context.commit('updateUserMeetups', reference.key)
           context.commit('createMeetup', meetup)
@@ -155,6 +151,7 @@ export const store = new Vuex.Store({
             context.commit('setLoading', false)
             snapshots.forEach(snapshot => {
               let meetup = snapshot.val()
+              meetup.id = snapshot.key
               context.commit('createMeetup', meetup)
             })
           })
@@ -162,6 +159,9 @@ export const store = new Vuex.Store({
             console.log(error)
           })
       }
+    },
+    loadMeetup (context, payload) {
+      context.commit('loadMeetup', payload)
     },
     onAccSignUp (context, user) {
       context.commit('clearError')
