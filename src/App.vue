@@ -31,6 +31,7 @@
     </v-toolbar>
 
     <v-content>
+      <loader v-if="loading"></loader>
       <router-view/>
     </v-content>
 
@@ -45,7 +46,13 @@
 </template>
 
 <script>
+import loader from '@/components/common/loader'
+
 export default {
+  name: 'App',
+  components: {
+    loader
+  },
   data () {
     return {
       sideNav: false,
@@ -63,8 +70,16 @@ export default {
     },
     signedIn () {
       return this.$store.state.user !== null
+    },
+    loading () {
+      return this.$store.state.loading
     }
   },
-  name: 'App'
+  created () {
+    this.$store.dispatch('loadMeetups')
+  }
 }
 </script>
+<style lang="scss">
+
+</style>

@@ -8,20 +8,20 @@ export const store = new Vuex.Store({
   state: {
     // data from firebase
     loadedMeetups: [
-      {
-        imageUrl: 'https://az616578.vo.msecnd.net/files/2016/03/11/635932734909157496651194192_nyc-letters.jpg',
-        id: 'a',
-        title: 'Meetup in NYC',
-        date: '2018-03-21 12:10',
-        description: 'Located two hours south of Sydney in the Southern Highlands of New South Wales, ...'
-      },
-      {
-        imageUrl: 'http://architectureimg.com/wp-content/uploads/2016/12/bridges-early-morning-queensboro-bridge-nyc-new-york-city-usa-manhattan-buildings-lights-river-desktop-backgrounds.jpg',
-        id: 'b',
-        title: 'Meetup in NYC',
-        date: Date.now(),
-        description: 'Located two hours south of Sydney in the Southern Highlands of New South Wales, ...'
-      }
+      // {
+      //   imageUrl: 'https://az616578.vo.msecnd.net/files/2016/03/11/635932734909157496651194192_nyc-letters.jpg',
+      //   id: 'a',
+      //   title: 'Meetup in NYC',
+      //   date: '2018-03-21 12:10',
+      //   description: 'Located two hours south of Sydney in the Southern Highlands of New South Wales, ...'
+      // },
+      // {
+      //   imageUrl: 'http://architectureimg.com/wp-content/uploads/2016/12/bridges-early-morning-queensboro-bridge-nyc-new-york-city-usa-manhattan-buildings-lights-river-desktop-backgrounds.jpg',
+      //   id: 'b',
+      //   title: 'Meetup in NYC',
+      //   date: Date.now(),
+      //   description: 'Located two hours south of Sydney in the Southern Highlands of New South Wales, ...'
+      // }
     ],
     user: null,
     loading: false,
@@ -32,6 +32,7 @@ export const store = new Vuex.Store({
   getters: {
     // loadedMeetups and sort
     loadedMeetups (state) {
+      console.log('data loaded')
       return state.loadedMeetups.sort((meetupA, meetupB) => {
         return meetupA.date > meetupB.date
       })
@@ -48,15 +49,22 @@ export const store = new Vuex.Store({
         })
       }
     },
+    // load meetups for current user - display on the profile page
+    myMeetups (state) {
+      // loop througn loadedMeetups, and find the meetups with uid equal to user.uid
+      if (state.user) {
+        return state.loadedMeetups.filter(meetup => meetup.uid === state.user.uid)
+      }
+    },
     // menu items - vary by sign in status
     menuItems (state) {
+      // when not login
       let menuItems = [
         { icon: 'supervisor_account', title: 'View Meetups', link: '/meetups' },
-        { icon: 'room', title: 'Create Meetup', link: 'meetup/new' },
-        { icon: 'person', title: 'Profile', link: '/profile' },
         { icon: 'face', title: 'Sign up', link: '/signup' },
         { icon: 'lock_open', title: 'Sign in', link: '/signin' }
       ]
+      // if login
       if (state.user) {
         menuItems = [
           { icon: 'supervisor_account', title: 'View Meetups', link: '/meetups' },
@@ -71,6 +79,17 @@ export const store = new Vuex.Store({
     createMeetup (state, payload) {
       state.loadedMeetups.push(payload)
       console.log('date inserted')
+    },
+    clearMeetups (state) {
+      state.loadedMeetups = []
+    },
+    updateUserMeetups (state, payload) {
+      if (state.user.registeredMeetups) {
+        state.user.registeredMeetups.push(payload)
+      } else {
+        state.user.registeredMeetups = []
+        state.user.registeredMeetups.push(payload)
+      }
     },
     initUser (state, newUser) {
       newUser.registeredMeetups = []
@@ -108,15 +127,41 @@ export const store = new Vuex.Store({
   },
   actions: {
     createMeetup (context, payload) {
-      const meetup = {
-        id: payload.id,
+      let meetup = {
         title: payload.title,
         location: payload.location,
         imageUrl: payload.imageUrl,
         description: payload.description,
-        date: payload.date
+        date: payload.date,
+        uid: context.state.user ? context.state.user.uid : undefined
       }
-      context.commit('createMeetup', meetup)
+      firebase.database().ref('meetups').push(meetup)
+        .then(reference => {
+          console.log(reference)
+          // meetup.id = reference.key
+          // update userMeetups lists
+          context.commit('updateUserMeetups', reference.key)
+          context.commit('createMeetup', meetup)
+        })
+        .catch(error => {
+          console.log(error)
+        })
+    },
+    loadMeetups (context) {
+      if (!context.state.loadedMeetups.length) {
+        context.commit('setLoading', true)
+        firebase.database().ref('meetups').once('value')
+          .then(snapshots => {
+            context.commit('setLoading', false)
+            snapshots.forEach(snapshot => {
+              let meetup = snapshot.val()
+              context.commit('createMeetup', meetup)
+            })
+          })
+          .catch(error => {
+            console.log(error)
+          })
+      }
     },
     onAccSignUp (context, user) {
       context.commit('clearError')
@@ -153,14 +198,18 @@ export const store = new Vuex.Store({
         })
     },
     onUserSignOut (context) {
+      context.commit('clearError')
+      context.commit('clearAlert')
       context.commit('setLoading', true)
       firebase.auth().signOut()
         .then(() => {
           context.commit('signUserOut')
+          context.commit('setLoading', false)
         })
         .catch(error => {
           console.log(error)
           context.commit('setError', error)
+          context.commit('showErrorAlet', true)
         })
     }
   }

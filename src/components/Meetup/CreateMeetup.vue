@@ -133,8 +133,7 @@ export default {
         location: this.location,
         imageUrl: this.imageUrl,
         description: this.description,
-        date: this.formattedDate,
-        id: 'c'
+        date: this.formattedDate
       }
       this.$store.dispatch('createMeetup', meetup)
       this.$router.push('/meetups')

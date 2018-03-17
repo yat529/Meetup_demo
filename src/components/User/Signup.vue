@@ -3,7 +3,6 @@
     <v-layout row>
       <v-flex xs12 sm6 offset-sm3>
         <v-card>
-          <loader v-if="loading"></loader>
           <v-alert type="success" :value="showSuccessAlert" v-if="showSuccessAlert">
               Login Successful
           </v-alert>
@@ -67,9 +66,6 @@ import * as firebase from 'firebase'
 import loader from '@/components/common/loader'
 
 export default {
-  components: {
-    loader
-  },
   data () {
     return {
       // valid: false,
@@ -101,9 +97,6 @@ export default {
     },
     checkPswLength () {
       return this.password.length >= 8
-    },
-    loading () {
-      return this.$store.state.loading
     },
     showSuccessAlert () {
       return this.$store.state.successAlert

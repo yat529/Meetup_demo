@@ -3,7 +3,6 @@
     <v-layout row>
       <v-flex xs12 sm6 offset-sm3>
         <v-card>
-          <loader v-if="loading"></loader>
           <v-alert type="success" :value="showSuccessAlert" v-if="showSuccessAlert">
               Login Successful
           </v-alert>
@@ -51,9 +50,6 @@
 import loader from '@/components/common/loader'
 
 export default {
-  components: {
-    loader
-  },
   data () {
     return {
       email: '',
@@ -77,9 +73,6 @@ export default {
       return [
         value => /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(value) || 'E-mail must be valid'
       ]
-    },
-    loading () {
-      return this.$store.state.loading
     },
     showSuccessAlert () {
       return this.$store.state.successAlert
