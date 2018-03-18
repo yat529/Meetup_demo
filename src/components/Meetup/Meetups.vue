@@ -32,13 +32,14 @@ export default {
   methods: {
     loadMeetup (item) {
       this.$store.dispatch('loadMeetup', item)
-      this.$router.push('/meetup/' + item.key)
+      this.$router.push('/meetup/' + item.id)
     }
   }
 }
 </script>
 <style lang="scss" scoped>
 .content {
-  min-height: 65px;
+  height: 65px;
+  overflow: hidden;
 }
 </style>

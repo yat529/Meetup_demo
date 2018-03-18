@@ -33,6 +33,7 @@ export default {
 </script>
 <style lang="scss" scoped>
 .content {
-  min-height: 65px;
+  height: 65px;
+  overflow: hidden;
 }
 </style>

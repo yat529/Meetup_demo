@@ -36,5 +36,8 @@ export default {
 }
 </script>
 <style lang="scss">
-
+.content {
+  height: 65px;
+  overflow: hidden;
+}
 </style>

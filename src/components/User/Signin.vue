@@ -65,6 +65,7 @@ export default {
           password: this.password
         }
         this.$store.dispatch('onUserLogIn', user)
+        this.$router.push('/profile')
       }
     }
   },
