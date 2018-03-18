@@ -27,7 +27,7 @@
               ></v-text-field>
 
               <!-- image insertion -->
-              <v-text-field
+              <!-- <v-text-field
                 label="Image URL"
                 persistent-hint
                 v-model="imageUrl"
@@ -36,7 +36,9 @@
               <div v-if="imageUrl">
                 <p class="info--text mb-1">Image Preview</p>
                 <img :src="imageUrl" class="preview">
-              </div>
+              </div> -->
+
+              <fileloader></fileloader>
 
               <!-- description textarea -->
               <v-text-field
@@ -71,7 +73,7 @@
                       <v-btn flat color="primary" @click="$refs.datePicker.save(date)">OK</v-btn>
                     </v-date-picker>
                   </v-dialog>
-                </v-flex>
+                </v-flex> 
 
                 <!-- time picker -->
                 <v-flex xs-6>
@@ -113,7 +115,12 @@
 </template>
 <script>
 /* eslint-disable */
+import fileloader from '@/components/common/fileloader'
+
 export default {
+  components: {
+    fileloader
+  },
   data () {
     return {
       title: '',
@@ -153,7 +160,4 @@ export default {
 }
 </script>
 <style lang="scss">
-.preview {
-  width: 100%;
-}
 </style>
