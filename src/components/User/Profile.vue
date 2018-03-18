@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container class="meetups">
     <h3 class="title mb-3 primary--text">My Meetups</h3>
     <v-layout row wrap>
       <v-flex xs12 sm6 md4 xl3 v-for="item in meetups" :key="item.id" class="px-2 py-2">
@@ -36,8 +36,10 @@ export default {
 }
 </script>
 <style lang="scss">
-.content {
-  height: 65px;
-  overflow: hidden;
+.meetups {
+  .content {
+    height: 65px;
+    overflow: hidden;
+  }
 }
 </style>

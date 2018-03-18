@@ -131,13 +131,15 @@ export const store = new Vuex.Store({
         date: payload.date,
         uid: context.state.user ? context.state.user.uid : undefined
       }
+      context.commit('setLoading', true)
       firebase.database().ref('meetups').push(meetup)
         .then(reference => {
-          console.log(reference)
+          // console.log(reference)
           meetup.id = reference.key
           // update userMeetups lists
           context.commit('updateUserMeetups', reference.key)
           context.commit('createMeetup', meetup)
+          context.commit('setLoading', false)
         })
         .catch(error => {
           console.log(error)
@@ -145,10 +147,8 @@ export const store = new Vuex.Store({
     },
     loadMeetups (context) {
       if (!context.state.loadedMeetups.length) {
-        context.commit('setLoading', true)
         firebase.database().ref('meetups').once('value')
           .then(snapshots => {
-            context.commit('setLoading', false)
             snapshots.forEach(snapshot => {
               let meetup = snapshot.val()
               meetup.id = snapshot.key
@@ -211,6 +211,19 @@ export const store = new Vuex.Store({
           context.commit('setError', error)
           context.commit('showErrorAlet', true)
         })
+    },
+    logUserIn (context, user) {
+      context.commit('signUserIn', user)
+    },
+    initPage (context) {
+      context.commit('setLoading', true)
+      firebase.auth().onAuthStateChanged(user => {
+        if (user) {
+          context.dispatch('logUserIn', user)
+        }
+        context.dispatch('loadMeetups')
+        context.commit('setLoading', false)
+      })
     }
   }
 })

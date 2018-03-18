@@ -1,5 +1,7 @@
+/* eslint-disable */
 import Vue from 'vue'
 import Router from 'vue-router'
+import { store } from '../store'
 
 // Import Page Components
 import Home from '@/components/Home'
@@ -7,8 +9,18 @@ import Meetups from '@/components/Meetup/Meetups'
 import CreateMeetup from '@/components/Meetup/CreateMeetup'
 import LoadedMeetup from '@/components/Meetup/Meetup'
 import Profile from '@/components/User/Profile'
+import ProfileInit from '@/components/User/init'
 import Signup from '@/components/User/Signup'
 import Signin from '@/components/User/Signin'
+
+// Config Router Guard
+let routerGuard = function (to, from, next) {
+  if (store.state.user) {
+    next()
+  } else {
+    next('/signin')
+  }
+}
 
 Vue.use(Router)
 
@@ -32,12 +44,20 @@ export default new Router({
     {
       path: '/addmeetup',
       name: 'CreateMeetup',
-      component: CreateMeetup
+      component: CreateMeetup,
+      beforeEnter: routerGuard
     },
     {
       path: '/profile',
       name: 'Profile',
-      component: Profile
+      component: Profile,
+      beforeEnter: routerGuard
+    },
+    {
+      path: '/profile/init',
+      name: 'ProfileInit',
+      component: ProfileInit,
+      beforeEnter: routerGuard
     },
     {
       path: '/signup',

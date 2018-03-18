@@ -46,6 +46,7 @@
 </template>
 
 <script>
+// import * as firebase from 'firebase'
 import loader from '@/components/common/loader'
 
 export default {
@@ -76,7 +77,13 @@ export default {
     }
   },
   created () {
-    this.$store.dispatch('loadMeetups')
+    // firebase.auth().onAuthStateChanged(user => {
+    //   if (user) {
+    //     this.$store.dispatch('logUserIn', user)
+    //   }
+    // })
+    // this.$store.dispatch('loadMeetups')
+    this.$store.dispatch('initPage')
   }
 }
 </script>

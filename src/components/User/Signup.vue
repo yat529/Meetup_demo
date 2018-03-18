@@ -116,7 +116,7 @@ export default {
           password: this.password
         }
         this.$store.dispatch('onAccSignUp', user)
-        this.$router.push('/meetups')
+        this.$router.push('/profile/init')
       }
     }
   }

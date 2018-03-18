@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container class="meetups">
     <v-layout row wrap>
       <v-flex xs12 sm6 md4 xl3 v-for="item in meetups" :key="item.id" class="px-2 py-2">
         <v-card>
@@ -34,12 +34,19 @@ export default {
       this.$store.dispatch('loadMeetup', item)
       this.$router.push('/meetup/' + item.id)
     }
+  },
+  created () {
+    // if (!this.$store.getters.loadedMeetups) {
+    //   this.$store.dispatch('loadMeetups')
+    // }
   }
 }
 </script>
 <style lang="scss" scoped>
-.content {
-  height: 65px;
-  overflow: hidden;
+.meetups {
+  .content {
+    height: 65px;
+    overflow: hidden;
+  }
 }
 </style>
