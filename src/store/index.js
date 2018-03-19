@@ -31,8 +31,7 @@ export const store = new Vuex.Store({
     successLogout: false,
     errorAlet: false,
     // fileloader related
-    flimage: null,
-    flimageurl: ''
+    flimage: null
   },
   getters: {
     // loadedMeetups and sort
@@ -91,6 +90,13 @@ export const store = new Vuex.Store({
     loadMeetup (state, payload) {
       state.loadedMeetup = state.loadedMeetups.find(meetup => meetup.id === payload.id)
     },
+    deleteLoadMeetup (state, payload) {
+      state.loadedMeetups.forEach((meetup, index) => {
+        if (meetup.id === payload.id) {
+          state.loadedMeetups.splice(index, 1)
+        }
+      })
+    },
     initUser (state, newUser) {
       newUser.registeredMeetups = []
       state.user = newUser
@@ -129,17 +135,15 @@ export const store = new Vuex.Store({
       state.errorAlet = false
     },
     setFileLoaderCache (state, payload) {
-      state.flimage = payload.image
-      state.flimageurl = payload.imageUrl
+      state.flimage = payload
     },
     clearFileLoaderCache (state) {
       state.flimage = null
-      state.flimageurl = ''
     }
   },
   actions: {
     createMeetup (context, payload) {
-      let key, imageUrl
+      let key, file, fileExt, imageUrl
       let meetup = {
         title: payload.title,
         location: payload.location,
@@ -158,11 +162,11 @@ export const store = new Vuex.Store({
         })
         .then(key => {
           // parse the file ext
-          let file = context.state.flimage
-          let filename = file.name
-          let ext = filename.slice(filename.lastIndexOf('.'))
+          file = context.state.flimage
+          let name = file.name
+          fileExt = name.slice(name.lastIndexOf('.'))
           // upload the file
-          return firebase.storage().ref('meetups/images').child(key + '.' + ext).put(file)
+          return firebase.storage().ref('meetups/images').child(key + fileExt).put(file)
         })
         .then(snapshot => {
           // get the image url in firebase storage
@@ -171,10 +175,12 @@ export const store = new Vuex.Store({
         })
         .then(reference => {
           reference.update({
+            imageExt: fileExt,
             imageUrl: imageUrl
           })
           // add property to meetup obj
           meetup.id = key
+          meetup.imageExt = fileExt
           meetup.imageUrl = imageUrl
           // update userMeetups lists
           context.commit('updateUserMeetups', key)
@@ -188,6 +194,32 @@ export const store = new Vuex.Store({
           })
         })
         .catch(error => {
+          console.log(error)
+        })
+    },
+    deleteMeetup (context, payload) {
+      // need a confirmation
+      // ....
+      context.commit('setLoading', true)
+      // delete image in storage if exists
+      if (payload.imageUrl) {
+        let imageRef = payload.id + payload.imageExt
+        firebase.storage().ref('meetups/images').child(imageRef).delete()
+          .then(() => {
+            console.log('image file deleted')
+          })
+          .catch(error => {
+            console.log(error)
+          })
+      }
+      // delete entry in database
+      firebase.database().ref('meetups').child(payload.id).remove()
+        .then(() => {
+          context.commit('deleteLoadMeetup', payload)
+          context.commit('setLoading', false)
+          console.log('image database entry deleted')
+        })
+        .catch((error) => {
           console.log(error)
         })
     },

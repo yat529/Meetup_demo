@@ -15,6 +15,7 @@
           </v-card-title>
           <v-card-actions>
             <v-btn flat color="orange">Edit</v-btn>
+            <v-btn flat color="orange" @click="deleteMeetup(item)">Delete</v-btn>
           </v-card-actions>
         </v-card>
       </v-flex>
@@ -27,7 +28,11 @@ export default {
   data() {
     return {}
   },
-  methods: {},
+  methods: {
+    deleteMeetup (item) {
+      this.$store.dispatch('deleteMeetup', item)
+    }
+  },
   computed: {
     meetups () {
       return this.$store.getters.myMeetups

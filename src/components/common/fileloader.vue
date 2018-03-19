@@ -53,10 +53,7 @@ export default {
 			filereader.addEventListener('load', (e) => {
 				this.imageUrl = e.target.result
 				// sync with vuex store
-				this.$store.commit('setFileLoaderCache', {
-					image: file,
-					imageUrl: this.imageUrl
-				})
+				this.$store.commit('setFileLoaderCache', file)
 			})
 			filereader.readAsDataURL(file)
 		}
