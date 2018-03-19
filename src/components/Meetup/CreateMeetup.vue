@@ -27,17 +27,6 @@
               ></v-text-field>
 
               <!-- image insertion -->
-              <!-- <v-text-field
-                label="Image URL"
-                persistent-hint
-                v-model="imageUrl"
-                required
-              ></v-text-field>
-              <div v-if="imageUrl">
-                <p class="info--text mb-1">Image Preview</p>
-                <img :src="imageUrl" class="preview">
-              </div> -->
-
               <fileloader></fileloader>
 
               <!-- description textarea -->
@@ -125,7 +114,7 @@ export default {
     return {
       title: '',
       location: '',
-      imageUrl: '',
+      // imageUrl: '',
       description: '',
       date: null,
       dateModal: false,
@@ -138,19 +127,20 @@ export default {
       const meetup = {
         title: this.title,
         location: this.location,
-        imageUrl: this.imageUrl,
+        // imageUrl: this.imageUrl,
         description: this.description,
         date: this.formattedDate
       }
       this.$store.dispatch('createMeetup', meetup)
-      this.$router.push('/meetups')
+        .then(() => {
+          this.$router.push('/meetups')
+        })
     }
   },
   computed: {
     validForm () {
       return this.title.length && 
-      this.location.length && 
-      this.imageUrl.length && 
+      this.location.length &&
       this.description.length
     },
     formattedDate () {

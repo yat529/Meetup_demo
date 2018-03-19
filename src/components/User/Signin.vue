@@ -3,8 +3,11 @@
     <v-layout row>
       <v-flex xs12 sm6 offset-sm3>
         <v-card>
-          <v-alert type="success" :value="showSuccessAlert" v-if="showSuccessAlert">
+          <v-alert type="success" :value="showSuccessLoginAlert" v-if="showSuccessLoginAlert">
               Login Successful
+          </v-alert>
+          <v-alert type="success" :value="showSuccessLogoutAlert" v-if="showSuccessLogoutAlert">
+              You've successfully logged out!
           </v-alert>
           <v-alert type="error" :value="showErrorAlet" v-if="showErrorAlet">
               {{ errorMsg }}
@@ -65,7 +68,9 @@ export default {
           password: this.password
         }
         this.$store.dispatch('onUserLogIn', user)
-        this.$router.push('/profile')
+          .then(() => {
+            this.$router.push('/profile')
+          })
       }
     }
   },
@@ -75,8 +80,11 @@ export default {
         value => /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(value) || 'E-mail must be valid'
       ]
     },
-    showSuccessAlert () {
-      return this.$store.state.successAlert
+    showSuccessLoginAlert () {
+      return this.$store.state.successLogin
+    },
+    showSuccessLogoutAlert () {
+      return this.$store.state.successLogout
     },
     showErrorAlet () {
       return this.$store.state.errorAlet

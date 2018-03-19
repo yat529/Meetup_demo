@@ -27,8 +27,12 @@ export const store = new Vuex.Store({
     loadedMeetup: null,
     loading: false,
     error: null,
-    successAlert: false,
-    errorAlet: false
+    successLogin: false,
+    successLogout: false,
+    errorAlet: false,
+    // fileloader related
+    flimage: null,
+    flimageurl: ''
   },
   getters: {
     // loadedMeetups and sort
@@ -110,36 +114,78 @@ export const store = new Vuex.Store({
     clearError (state) {
       state.error = null
     },
-    showSuccessAlert (state, payload) {
-      state.successAlert = payload
+    showSuccessLoginAlert (state, payload) {
+      state.successLogin = payload
+    },
+    showSuccessLogoutAlert (state, payload) {
+      state.successLogout = payload
     },
     showErrorAlet (state, payload) {
       state.errorAlet = payload
     },
     clearAlert (state) {
-      state.successAlert = false
+      state.successLogin = false
+      state.successLogout = false
       state.errorAlet = false
+    },
+    setFileLoaderCache (state, payload) {
+      state.flimage = payload.image
+      state.flimageurl = payload.imageUrl
+    },
+    clearFileLoaderCache (state) {
+      state.flimage = null
+      state.flimageurl = ''
     }
   },
   actions: {
     createMeetup (context, payload) {
+      let key, imageUrl
       let meetup = {
         title: payload.title,
         location: payload.location,
-        imageUrl: payload.imageUrl,
+        // imageUrl: payload.imageUrl,
         description: payload.description,
         date: payload.date,
         uid: context.state.user ? context.state.user.uid : undefined
       }
+
       context.commit('setLoading', true)
       firebase.database().ref('meetups').push(meetup)
         .then(reference => {
           // console.log(reference)
-          meetup.id = reference.key
+          key = reference.key
+          return key
+        })
+        .then(key => {
+          // parse the file ext
+          let file = context.state.flimage
+          let filename = file.name
+          let ext = filename.slice(filename.lastIndexOf('.'))
+          // upload the file
+          return firebase.storage().ref('meetups/images').child(key + '.' + ext).put(file)
+        })
+        .then(snapshot => {
+          // get the image url in firebase storage
+          imageUrl = snapshot.metadata.downloadURLs[0]
+          return firebase.database().ref('/meetups').child(key)
+        })
+        .then(reference => {
+          reference.update({
+            imageUrl: imageUrl
+          })
+          // add property to meetup obj
+          meetup.id = key
+          meetup.imageUrl = imageUrl
           // update userMeetups lists
-          context.commit('updateUserMeetups', reference.key)
+          context.commit('updateUserMeetups', key)
           context.commit('createMeetup', meetup)
           context.commit('setLoading', false)
+          // clear fileloader cache
+          context.commit('clearFileLoaderCache')
+          // able to chain promise in component methods
+          return new Promise((resolve, reject) => {
+            resolve()
+          })
         })
         .catch(error => {
           console.log(error)
@@ -171,7 +217,7 @@ export const store = new Vuex.Store({
         .then(user => {
           context.commit('initUser', user)
           context.commit('setLoading', false)
-          context.commit('showSuccessAlert', true)
+          context.commit('showSuccessLoginAlert', true)
         })
         .catch(error => {
           console.log(error)
@@ -184,33 +230,44 @@ export const store = new Vuex.Store({
       context.commit('clearError')
       context.commit('clearAlert')
       context.commit('setLoading', true)
-      firebase.auth().signInWithEmailAndPassword(user.email, user.password)
-        .then(user => {
-          context.commit('signUserIn', user)
-          context.commit('setLoading', false)
-          context.commit('showSuccessAlert', true)
-        })
-        .catch(error => {
-          console.log(error)
-          context.commit('setError', error)
-          context.commit('setLoading', false)
-          context.commit('showErrorAlet', true)
-        })
+
+      return new Promise((resolve, reject) => {
+        firebase.auth().signInWithEmailAndPassword(user.email, user.password)
+          .then(user => {
+            context.commit('signUserIn', user)
+            context.commit('setLoading', false)
+            context.commit('showSuccessLoginAlert', true)
+            resolve()
+          })
+          .catch(error => {
+            console.log(error)
+            context.commit('setError', error)
+            context.commit('setLoading', false)
+            context.commit('showErrorAlet', true)
+            reject(error)
+          })
+      })
     },
-    onUserSignOut (context) {
+    onUserSignOut (context, router) {
       context.commit('clearError')
       context.commit('clearAlert')
       context.commit('setLoading', true)
-      firebase.auth().signOut()
-        .then(() => {
-          context.commit('signUserOut')
-          context.commit('setLoading', false)
-        })
-        .catch(error => {
-          console.log(error)
-          context.commit('setError', error)
-          context.commit('showErrorAlet', true)
-        })
+
+      return new Promise((resolve, reject) => {
+        firebase.auth().signOut()
+          .then(() => {
+            context.commit('signUserOut')
+            context.commit('setLoading', false)
+            context.commit('showSuccessLogoutAlert', true)
+            resolve()
+          })
+          .catch(error => {
+            console.log(error)
+            context.commit('setError', error)
+            context.commit('showErrorAlet', true)
+            reject(error)
+          })
+      })
     },
     logUserIn (context, user) {
       context.commit('signUserIn', user)

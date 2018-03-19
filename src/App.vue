@@ -63,6 +63,9 @@ export default {
   methods: {
     signOut () {
       this.$store.dispatch('onUserSignOut')
+        .then(() => {
+          this.$router.push('/signin')
+        })
     }
   },
   computed: {

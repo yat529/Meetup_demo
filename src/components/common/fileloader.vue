@@ -38,6 +38,8 @@ export default {
 			this.imageUrl = ''
 			this.imageName = ''
 			this.$refs.defaultFileInput.value = ''
+			// sync with vuex store
+			this.$store.commit('clearFileLoaderCache')
 		},
 		onFileSelected (event) {
 			console.log(event)
@@ -50,6 +52,11 @@ export default {
 			let filereader = new FileReader()
 			filereader.addEventListener('load', (e) => {
 				this.imageUrl = e.target.result
+				// sync with vuex store
+				this.$store.commit('setFileLoaderCache', {
+					image: file,
+					imageUrl: this.imageUrl
+				})
 			})
 			filereader.readAsDataURL(file)
 		}
