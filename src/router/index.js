@@ -2,6 +2,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import { store } from '../store'
+import * as firebase from 'firebase'
 
 // Import Page Components
 import Home from '@/components/Home'
@@ -15,11 +16,13 @@ import Signin from '@/components/User/Signin'
 
 // Config Router Guard
 let routerGuard = function (to, from, next) {
-  if (store.state.user) {
-    next()
-  } else {
-    next('/signin')
-  }
+  firebase.auth().onAuthStateChanged(user => {
+    if (!user) {
+      next('/signin')
+    } else {
+      next()
+    }
+  })
 }
 
 Vue.use(Router)
@@ -72,3 +75,11 @@ export default new Router({
   ],
   mode: 'history'
 })
+
+// router.beforeEach((to, from, next) => {
+//   if (!firebase.auth().currentUser) {
+//     next('/signin')
+//   } else {
+//     next()
+//   }
+// })

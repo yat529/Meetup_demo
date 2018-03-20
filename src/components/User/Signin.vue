@@ -69,6 +69,7 @@ export default {
         }
         this.$store.dispatch('onUserLogIn', user)
           .then(() => {
+            console.log('im here')
             this.$router.push('/profile')
           })
       }

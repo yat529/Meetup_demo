@@ -42,7 +42,6 @@ export default {
 			this.$store.commit('clearFileLoaderCache')
 		},
 		onFileSelected (event) {
-			console.log(event)
 			let files = event.target.files
 			if (!files.length) return
 			
