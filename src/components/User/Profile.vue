@@ -12,7 +12,7 @@
         <v-btn flat large color="primary" @click="redirectToCreate">Create a meetup</v-btn>
       </v-layout>
       <v-flex xs12 sm6 md4 xl3 v-for="item in createdMeetups" :key="item.id" class="px-2 py-2">
-        <v-card>
+        <v-card flat>
           <v-card-media :src="item.imageUrl" height="200px">
           </v-card-media>
           <v-card-title primary-title>
@@ -22,14 +22,10 @@
               <div class="content">{{ item.description }}</div>
             </div>
           </v-card-title>
-          <!-- <v-card-actions>
-            <v-btn flat color="orange" @click="loadMeetup(item)">Edit</v-btn>
-            <v-btn flat color="orange" @click="deleteMeetup(item)">Delete</v-btn>
-          </v-card-actions> -->
           <CardButton :item="item" v-on:edit="loadMeetup(item)" v-on:more="loadMeetup(item)"></CardButton>
         </v-card>
       </v-flex>
-      <v-flex xs12 sm6 md4 xl3 v-if="createdMeetups.length < 3 && createdMeetups.length" class="px-2 py-2">
+      <v-flex xs12 sm6 md4 xl3 v-if="createdMeetups.length" class="px-2 py-2">
         <v-card flat height="418px">
           <v-layout justify-center align-center fill-height>
             <v-btn flat large color="primary" @click="redirectToCreate">
@@ -46,7 +42,7 @@
         <v-btn flat large color="primary" @click="redirectToMeetups">Register a meetup</v-btn>
       </v-layout>
       <v-flex xs12 sm6 md4 xl3 v-for="item in registeredMeetups" :key="item.id" class="px-2 py-2">
-        <v-card>
+        <v-card flat>
           <v-card-media :src="item.imageUrl" height="200px">
           </v-card-media>
           <v-card-title primary-title>
@@ -56,11 +52,17 @@
               <div class="content">{{ item.description }}</div>
             </div>
           </v-card-title>
-          <!-- <v-card-actions>
-            <v-btn flat color="orange" @click="loadMeetup(item)">more</v-btn>
-            <v-btn flat color="orange" @click="unregisterMeetup(item)">Unregister</v-btn>
-          </v-card-actions> -->
           <CardButton :item="item" v-on:unregister="unregisterMeetup(item)" v-on:more="loadMeetup(item)"></CardButton>
+        </v-card>
+      </v-flex>
+      <v-flex xs12 sm6 md4 xl3 v-if="registeredMeetups.length" class="px-2 py-2">
+        <v-card flat height="418px">
+          <v-layout justify-center align-center fill-height>
+            <v-btn flat large color="primary" @click="redirectToMeetups">
+              <v-icon dark left>add_circle_outline</v-icon>
+              add more
+            </v-btn>
+          </v-layout>
         </v-card>
       </v-flex>
     </v-layout>
