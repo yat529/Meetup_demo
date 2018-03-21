@@ -109,6 +109,11 @@ export default {
   },
   computed: {
     item () {
+      if (!this.$store.state.loadedMeetup) {
+        let key = this.$route.params.id
+        let item = this.$store.state.loadedMeetups.find(meetup => meetup.key === key)
+        this.$store.commit('loadMeetup', item)
+      }
       return this.$store.state.loadedMeetup
     },
     avatarBgUrl () {
@@ -120,11 +125,14 @@ export default {
     },
     registered () {
       let key = this.item.key
-      return this.$store.state.user_basic.registeredMeetups[key]
+      return this.$store.state.user_basic && this.$store.state.user_basic.registeredMeetups[key]
     },
     isOrganizer () {
-      return this.$store.state.user.uid === this.item.uid
+      return this.$store.state.user && this.$store.state.user.uid === this.item.uid
     }
+  },
+  created () {
+    
   }
 }
 </script>
