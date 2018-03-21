@@ -146,6 +146,9 @@ export default {
     formattedDate () {
       return `${this.date} ${this.time}`
     }
+  },
+  created () {
+    this.$store.commit('clearLoadedMeetUp')
   }
 }
 </script>

@@ -115,8 +115,12 @@ export default {
           email: this.email,
           password: this.password
         }
-        this.$store.dispatch('onAccSignUp', user)
-        this.$router.push('/profile/init')
+        this.$store.dispatch('onAccSignUp', user).then(() => {
+          console.log('finally got here')
+          this.$router.push({
+            path: '/profile/init'
+          })
+        })
       }
     }
   }

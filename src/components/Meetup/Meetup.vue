@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <v-layout row wrap>
-      <v-flex xs12 class="meetup">
+      <v-flex xs12 class="meetup" v-if="item">
         <v-card>
           <!-- toolbar header -->
           <v-toolbar dark color="" flat>
@@ -24,8 +24,8 @@
           <!-- card body -->
           <v-layout row class="orgnizer px-2 py-2 mb-3">
             <v-flex xs12 sm2 class="text-xs-center">
-              <div class="avatar" :style="avatarUrl"></div>
-              <p>Orgnizer</p>
+              <div class="avatar" :style="avatarBgUrl"></div>
+              <p class="primary--text">{{ organizer.nickname }}</p>
             </v-flex>
             <v-flex xs12 sm10>
               <h3 class="primary--text">Information</h3>
@@ -38,9 +38,9 @@
               <h3 class="primary--text mb-1">Followers</h3>
             </v-flex>
             <v-flex xs12 sm10>
-              <div class="seat" v-for="member in members" :key="member.name">
-                <div class="avatar" :style="avatarUrl"></div>
-                <p class="member-name">{{ member.name }}</p>
+              <div class="seat" v-for="member in item.registeredMembers" :key="member.uid">
+                <div class="avatar" :style="getAvatarBgUrl(member)"></div>
+                <p class="member-name">{{ member.nickname }}</p>
               </div>
             </v-flex>
           </v-layout>
@@ -65,7 +65,11 @@
 
           <v-layout row class="px-2 py-2">
             <v-flex>
-              <v-btn flat block color="orange" @click="registerMeetup(item)">Join</v-btn>
+              <v-btn flat color="orange" v-if="registered" @click="unregisterMeetup(item)">Unregistered</v-btn>
+              <v-btn flat color="orange" v-if="!registered&&!isOrganizer" @click="registerMeetup(item)">Join</v-btn>
+              <v-btn flat color="orange" v-if="isOrganizer" @click="editMeetup(item)">Edit</v-btn>
+              <v-btn flat color="orange" v-if="isOrganizer" @click="deleteMeetup(item)">Delete</v-btn>
+              <v-btn flat color="orange" @click="closeMeetup()">Close</v-btn>
             </v-flex>
           </v-layout>
           
@@ -79,20 +83,6 @@
 export default {
   data() {
     return {
-      members: [
-        {
-          name: 'A',
-        },
-        {
-          name: 'B',
-        },
-        {
-          name: 'C',
-        },
-        {
-          name: 'D',
-        }
-      ],
       location: '',
       otherInfo: '',
     }
@@ -100,14 +90,40 @@ export default {
   methods: {
     registerMeetup (item) {
       this.$store.dispatch('registerMeetup', item)
+    },
+    unregisterMeetup (item) {
+      this.$store.dispatch('unregisterMeetup', item)
+    },
+    closeMeetup () {
+      this.$router.go(-1)
+      this.$store.commit('clearLoadedMeetUp')
+    },
+    editMeetup (item) {},
+    deleteMeetup (item) {
+
+    },
+    getAvatarBgUrl (item) {
+      let avatarUrl = item.avatar
+      return `background-image: url("${ avatarUrl }")`
     }
   },
   computed: {
     item () {
       return this.$store.state.loadedMeetup
     },
-    avatarUrl () {
-      return 'background-image: url("@/assets/logo.png")'
+    avatarBgUrl () {
+      let avatarUrl = this.item.organizer.avatar
+      return `background-image: url("${ avatarUrl }")`
+    },
+    organizer () {
+      return this.item.organizer
+    },
+    registered () {
+      let key = this.item.key
+      return this.$store.state.user_basic.registeredMeetups[key]
+    },
+    isOrganizer () {
+      return this.$store.state.user.uid === this.item.uid
     }
   }
 }
@@ -122,7 +138,7 @@ export default {
       border-radius: 50%;
       border: 3px solid #eeeeee;
       background-position: center;
-      background-size: contain
+      background-size: cover;
     }
   }
 
@@ -135,12 +151,12 @@ export default {
 
       .avatar {
         display: inline-block;
-        width: 40px;
-        height: 40px;
+        width: 50px;
+        height: 50px;
         border-radius: 50%;
         border: 3px solid #eeeeee;
         background-position: center;
-        background-size: contain
+        background-size: cover;
       }
 
       .member-name {

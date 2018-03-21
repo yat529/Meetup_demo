@@ -6,34 +6,23 @@ Vue.use(Vuex)
 
 export const store = new Vuex.Store({
   state: {
-    // data from firebase
-    loadedMeetups: [
-      // {
-      //   imageUrl: 'https://az616578.vo.msecnd.net/files/2016/03/11/635932734909157496651194192_nyc-letters.jpg',
-      //   id: 'a',
-      //   title: 'Meetup in NYC',
-      //   date: '2018-03-21 12:10',
-      //   description: 'Located two hours south of Sydney in the Southern Highlands of New South Wales, ...'
-      // },
-      // {
-      //   imageUrl: 'http://architectureimg.com/wp-content/uploads/2016/12/bridges-early-morning-queensboro-bridge-nyc-new-york-city-usa-manhattan-buildings-lights-river-desktop-backgrounds.jpg',
-      //   id: 'b',
-      //   title: 'Meetup in NYC',
-      //   date: Date.now(),
-      //   description: 'Located two hours south of Sydney in the Southern Highlands of New South Wales, ...'
-      // }
-    ],
+    // local cache data from firebase
+    loadedMeetups: [],
     createdMeetups: [],
     registeredMeetups: [],
     loadedMeetup: null,
-    user: null,
+    // local cache user
+    user: null, // firebase user obj
+    user_basic: null, // basic info catch
+    // state
     loading: false,
     error: null,
     successLogin: false,
     successLogout: false,
     errorAlet: false,
     // fileloader related
-    flimage: null
+    flimage: null,
+    flimageTempUrl: null
   },
   getters: {
     // loadedMeetups and sort
@@ -81,7 +70,7 @@ export const store = new Vuex.Store({
   },
   mutations: {
     // local meetups
-    cacheMeetup (state, meetup) {
+    cacheMeetups (state, meetup) {
       state.loadedMeetups.push(meetup)
       console.log('data cached')
     },
@@ -131,10 +120,14 @@ export const store = new Vuex.Store({
     loadMeetup (state, payload) {
       state.loadedMeetup = state.loadedMeetups.find(meetup => meetup.key === payload.key)
     },
+    clearLoadedMeetUp (state) {
+      state.loadedMeetup = null
+    },
     registerMeetup (state, payload) {
       state.registeredMeetups.push(payload)
     },
     unregisterMeetup (state, payload) {
+      // payload is meet up
       state.registeredMeetups.forEach((meetup, index) => {
         if (meetup.key === payload.key) {
           state.registeredMeetups.splice(index, 1)
@@ -143,58 +136,91 @@ export const store = new Vuex.Store({
     },
     // local user cache
     signUserIn (state, user) {
-      // user.registeredMeetups = []
+      // user is firebase user obj
       state.user = user
       console.log('user logged in')
     },
     signUserOut (state) {
       state.user = null
+      state.user_basic = null
       console.log('user signed out')
     },
     addUserCreatedMeetup (state, payload) {
-      if (!state.user.createdMeetups) {
-        state.user.createdMeetups = []
+      // info add to user_basic obj
+      if (!state.user_basic.createdMeetups) {
+        state.user_basic.createdMeetups = {}
       }
-      state.user.createdMeetups.push(payload)
+      state.user_basic.createdMeetups[payload] = true
     },
     deleteUserCreatedMeetup (state, payload) {
-      if (state.user.createdMeetups) {
-        state.user.createdMeetups.splice(state.user.createdMeetups.indexOf(payload), 1)
+      if (state.user_basic.createdMeetups[payload]) {
+        // state.user_basic.createdMeetups.splice(state.user_basic.createdMeetups.indexOf(payload), 1)
+        delete state.user_basic.createdMeetups[payload]
       }
     },
     addUserRegisteredMeetup (state, payload) {
-      if (!state.user.registeredMeetups) {
-        state.user.registeredMeetups = []
+      // info add to user_basic obj
+      // payload is meetup key
+      if (!state.user_basic.registeredMeetups) {
+        // leave it as array for now...
+        state.user_basic.registeredMeetups = {}
       }
-      state.user.registeredMeetups.push(payload)
+      state.user_basic.registeredMeetups[payload] = true
     },
     deleteUserRegisteredMeetup (state, payload) {
-      if (state.user.registeredMeetups) {
-        state.user.registeredMeetups.splice(state.user.registeredMeetups.indexOf(payload), 1)
+      // payload is meetup key
+      if (state.user_basic.registeredMeetups[payload]) {
+        // state.user_basic.registeredMeetups.splice(state.user_basic.registeredMeetups.indexOf(payload), 1)
+        delete state.user_basic.registeredMeetups[payload]
       }
     },
+    // register user to local cache of meetup
     addMeetupRegisteredMember (state, payload) {
-      let uid = state.user.uid
-      let targetMeetup = state.loadedMeetups.find(meetup => meetup.key === payload)
+      // payload is meetup key
+      let targetMeetup
+      let user = {
+        uid: state.user.uid,
+        nickname: state.user_basic.nickname,
+        avatar: state.user_basic.avatar,
+        sex: state.user_basic.sex
+      }
+
+      // if user already opened a meetup
+      if (state.loadedMeetup) {
+        targetMeetup = state.loadedMeetup
+      } else {
+        targetMeetup = state.loadedMeetups.find(meetup => meetup.key === payload)
+      }
+      // if the meetup don't have a registered membet object ye
       if (!targetMeetup.registeredMembers) {
         targetMeetup.registeredMembers = {}
       }
-      // console.log(targetMeetup)
-      targetMeetup.registeredMembers[uid] = true
+      // add the current user to the meetup
+      targetMeetup.registeredMembers[user.uid] = user
     },
     deleteMeetupRegisteredMember (state, payload) {
+      // payload is meetup key
       let uid = state.user.uid
       let targetMeetup = state.loadedMeetups.find(meetup => meetup.key === payload)
       if (targetMeetup.registeredMembers && targetMeetup.registeredMembers[uid]) {
         delete targetMeetup.registeredMembers[uid]
       }
     },
+    // update user_basic obj
+    updateUserInfo (state, payload) {
+      Object.keys(payload).forEach(key => {
+        state.user_basic[key] = payload[key]
+      })
+      console.log('user info local updated')
+    },
     // local fileloader cache
     setFileLoaderCache (state, payload) {
-      state.flimage = payload
+      state.flimage = payload.file
+      state.flimageTempUrl = payload.fileTempUrl
     },
     clearFileLoaderCache (state) {
       state.flimage = null
+      state.flimageTempUrl = null
     },
     // other state info
     setLoading (state, payload) {
@@ -229,11 +255,16 @@ export const store = new Vuex.Store({
         location: newMeetup.location,
         description: newMeetup.description,
         date: newMeetup.date,
-        uid: context.state.user ? context.state.user.uid : undefined
+        uid: context.state.user ? context.state.user.uid : undefined,
+        organizer: {
+          nickname: context.state.user_basic.nickname,
+          avatar: context.state.user_basic.avatar,
+          sex: context.state.user_basic.sex
+        }
       }
-
-      context.commit('setLoading', true)
-      firebase.database().ref('meetups').push(meetup)
+      return new Promise((resolve, reject) => {
+        context.commit('setLoading', true)
+        firebase.database().ref('meetups').push(meetup)
         .then(reference => {
           key = reference.key
           // parse the file ext
@@ -266,13 +297,12 @@ export const store = new Vuex.Store({
           // clear fileloader cache
           context.commit('clearFileLoaderCache')
           // able to chain promise in component methods
-          return new Promise((resolve, reject) => {
-            resolve()
-          })
+          resolve()
         })
         .catch(error => {
           console.log(error)
         })
+      })
     },
     deleteMeetup (context, meetup) {
       let uid = context.state.user.uid
@@ -306,19 +336,27 @@ export const store = new Vuex.Store({
         })
     },
     registerMeetup (context, meetup) {
-      let uid = context.state.user.uid
+      // prepare the user info to be submitted
+      let user = {
+        uid: context.state.user.uid,
+        nickname: context.state.user_basic.nickname,
+        avatar: context.state.user_basic.avatar,
+        sex: context.state.user_basic.sex
+      }
       let key = meetup.key
-      context.commit('setLoading', true)
-      firebase.database().ref('meetups').child(key).child('registeredMembers').child(uid).set(true)
-      .then(() => {
-        return firebase.database().ref('users').child(uid).child('registeredMeetups').child(key).set(true)
-      })
-      .then(() => {
-        context.commit('registerMeetup', meetup)
-        context.commit('addUserRegisteredMeetup', key)
-        context.commit('addMeetupRegisteredMember', key)
-        context.commit('setLoading', false)
-        return new Promise((resolve, reject) => {
+      // console.log(key)
+
+      return new Promise((resolve, reject) => {
+        context.commit('setLoading', true)
+        firebase.database().ref('meetups').child(key).child('registeredMembers').child(user.uid).set(user)
+        .then(() => {
+          return firebase.database().ref('users').child(user.uid).child('registeredMeetups').child(key).set(true)
+        })
+        .then(() => {
+          context.commit('registerMeetup', meetup)
+          context.commit('addUserRegisteredMeetup', key)
+          context.commit('addMeetupRegisteredMember', key)
+          context.commit('setLoading', false)
           resolve()
         })
       })
@@ -329,22 +367,23 @@ export const store = new Vuex.Store({
     unregisterMeetup (context, meetup) {
       let uid = context.state.user.uid
       let key = meetup.key
-      context.commit('setLoading', true)
-      firebase.database().ref('meetups').child(key).child('registeredMembers').child(uid).remove()
-      .then(() => {
-        return firebase.database().ref('users').child(uid).child('registeredMeetups').child(key).remove()
-      })
-      .then(() => {
-        context.commit('unregisterMeetup', meetup)
-        context.commit('deleteUserRegisteredMeetup', key)
-        context.commit('deleteMeetupRegisteredMember', key)
-        context.commit('setLoading', false)
-        return new Promise((resolve, reject) => {
+
+      return new Promise((resolve, reject) => {
+        context.commit('setLoading', true)
+        firebase.database().ref('meetups').child(key).child('registeredMembers').child(uid).remove()
+        .then(() => {
+          return firebase.database().ref('users').child(uid).child('registeredMeetups').child(key).remove()
+        })
+        .then(() => {
+          context.commit('unregisterMeetup', meetup)
+          context.commit('deleteUserRegisteredMeetup', key)
+          context.commit('deleteMeetupRegisteredMember', key)
+          context.commit('setLoading', false)
           resolve()
         })
-      })
-      .catch(error => {
-        console.log(error)
+        .catch(error => {
+          console.log(error)
+        })
       })
     },
     // load meetups from firebase, return a promise
@@ -355,7 +394,7 @@ export const store = new Vuex.Store({
           snapshots.forEach(snapshot => {
             let meetup = snapshot.val()
             meetup.key = snapshot.key
-            context.commit('cacheMeetup', meetup)
+            context.commit('cacheMeetups', meetup)
           })
           resolve()
         })
@@ -370,6 +409,7 @@ export const store = new Vuex.Store({
         .then(snapshots => {
           snapshots.forEach(snapshot => {
             let meetup = snapshot.val()
+            meetup.key = snapshot.key
             context.commit('cacheRegisteredMeetups', meetup)
             context.commit('cacheCreatedMeetups', meetup)
           })
@@ -384,16 +424,23 @@ export const store = new Vuex.Store({
       context.commit('clearError')
       context.commit('clearAlert')
       context.commit('setLoading', true)
-      firebase.auth().createUserWithEmailAndPassword(user.email, user.password)
+      return new Promise((resolve, reject) => {
+        firebase.auth().createUserWithEmailAndPassword(user.email, user.password)
         .then(user => {
-          // context.commit('initUser', user)
           return firebase.database().ref('users').child(user.uid).set({
             email: user.email
           })
         })
-        .then(ref => {
-          context.commit('setLoading', false)
+        .then(() => {
           context.commit('showSuccessLoginAlert', true)
+          setTimeout(() => {
+            // setup user_basic obj
+            context.state.user_basic = {
+              email: user.email
+            }
+            context.commit('setLoading', false)
+            resolve()
+          }, 1000)
         })
         .catch(error => {
           console.log(error)
@@ -401,6 +448,7 @@ export const store = new Vuex.Store({
           context.commit('setLoading', false)
           context.commit('showErrorAlet', true)
         })
+      })
     },
     onUserLogIn (context, user) {
       context.commit('clearError')
@@ -410,10 +458,11 @@ export const store = new Vuex.Store({
       return new Promise((resolve, reject) => {
         firebase.auth().signInWithEmailAndPassword(user.email, user.password)
         .then(user => {
-          context.commit('signUserIn', user)
           context.commit('setLoading', false)
           context.commit('showSuccessLoginAlert', true)
-          context.dispatch('loadUserMeetupsOnce')
+          // no needed, already called in initPage
+          // context.commit('signUserIn', user)
+          // context.dispatch('loadUserMeetupsOnce')
           resolve()
         })
         .catch(error => {
@@ -433,6 +482,7 @@ export const store = new Vuex.Store({
         firebase.auth().signOut()
           .then(() => {
             context.commit('signUserOut')
+            context.commit('clearLoadedMeetUp')
             context.commit('clearUserMeetupsCache')
             context.commit('setLoading', false)
             context.commit('showSuccessLogoutAlert', true)
@@ -446,12 +496,74 @@ export const store = new Vuex.Store({
           })
       })
     },
+    // user profile update
+    updateUserInfo (context, userInfo) {
+      let uid = context.state.user.uid
+      let avatarUrl
+
+      context.commit('setLoading', true)
+
+      return new Promise((resolve, reject) => {
+        // parse the file ext
+        if (context.state.flimage) {
+          let file = context.state.flimage
+          let name = file.name
+          let fileExt = name.slice(name.lastIndexOf('.'))
+
+          firebase.storage().ref('users').child(uid).child('avatar/' + uid + fileExt).put(file)
+          .then(snapshot => {
+            avatarUrl = snapshot.metadata.downloadURLs[0]
+            return firebase.database().ref('users').child(uid).update({
+              avatar: avatarUrl
+            })
+          })
+          .then(() => {
+            context.commit('updateUserInfo', {
+              avatar: avatarUrl
+            })
+            context.commit('clearFileLoaderCache')
+            console.log('Avatar Uploaded')
+          })
+          .catch(error => console.log(error))
+        }
+
+        firebase.database().ref('users').child(uid).update(userInfo)
+        .then(() => {
+          context.commit('updateUserInfo', userInfo)
+          context.commit('setLoading', false)
+          resolve()
+        })
+        .catch(error => {
+          console.log(error)
+        })
+      })
+    },
+    // sync user info to user_basic
+    // note: user is obj provided by firebase, user_basic is just a self-created object with basic user info
+    syncUserInfo (context, key) {
+      return new Promise((resolve, reject) => {
+        firebase.database().ref('users').child(key).once('value')
+          .then(ref => {
+            context.state.user_basic = ref.val()
+            resolve()
+          })
+          .catch(error => {
+            console.log(error)
+          })
+      })
+    },
     // when meetups page load
     initPage (context) {
       firebase.auth().onAuthStateChanged(user => {
         if (user) {
           context.commit('setLoading', true)
           context.commit('signUserIn', user)
+
+          if (!context.state.user_basic) {
+            context.dispatch('syncUserInfo', user.uid)
+              .then(() => context.commit('setLoading', false))
+          }
+
           if (!context.state.registeredMeetups.length && !context.state.createdMeetups.length) {
             context.dispatch('loadUserMeetupsOnce')
               .then(() => context.commit('setLoading', false))

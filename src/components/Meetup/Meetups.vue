@@ -1,5 +1,5 @@
 <template>
-  <v-container class="meetups">
+  <v-container class="meetups" v-if="meetups">
     <v-layout row wrap>
       <v-flex xs12 sm6 md4 xl3 v-for="item in meetups" :key="item.key" class="px-2 py-2">
         <v-card>
@@ -37,6 +37,9 @@ export default {
     registerMeetup (item) {
       this.$store.dispatch('registerMeetup', item)
     }
+  },
+  created () {
+    this.$store.commit('clearLoadedMeetUp')
   }
 }
 </script>
