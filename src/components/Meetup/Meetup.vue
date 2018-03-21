@@ -65,11 +65,12 @@
 
           <v-layout row class="px-2 py-2">
             <v-flex>
-              <v-btn flat color="orange" v-if="registered" @click="unregisterMeetup(item)">Unregistered</v-btn>
+              <!-- <v-btn flat color="orange" v-if="registered" @click="unregisterMeetup(item)">Unregistered</v-btn>
               <v-btn flat color="orange" v-if="!registered&&!isOrganizer" @click="registerMeetup(item)">Join</v-btn>
               <v-btn flat color="orange" v-if="isOrganizer" @click="editMeetup(item)">Edit</v-btn>
               <v-btn flat color="orange" v-if="isOrganizer" @click="deleteMeetup(item)">Delete</v-btn>
-              <v-btn flat color="orange" @click="closeMeetup()">Close</v-btn>
+              <v-btn flat color="orange" @click="closeMeetup()">Close</v-btn> -->
+              <CardButton :item="item" v-on:register="registerMeetup(item)" v-on:unregister="unregisterMeetup(item)" v-on:close="closeMeetup" :noMore="true"></CardButton>
             </v-flex>
           </v-layout>
           
@@ -80,7 +81,11 @@
 </template>
 <script>
 /* eslint-disable */
+import CardButton from '@/components/common/button'
 export default {
+  components: {
+    CardButton
+  },
   data() {
     return {
       location: '',

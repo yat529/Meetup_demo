@@ -22,13 +22,14 @@
               <div class="content">{{ item.description }}</div>
             </div>
           </v-card-title>
-          <v-card-actions>
+          <!-- <v-card-actions>
             <v-btn flat color="orange" @click="loadMeetup(item)">Edit</v-btn>
             <v-btn flat color="orange" @click="deleteMeetup(item)">Delete</v-btn>
-          </v-card-actions>
+          </v-card-actions> -->
+          <CardButton :item="item" v-on:edit="loadMeetup(item)" v-on:more="loadMeetup(item)"></CardButton>
         </v-card>
       </v-flex>
-      <v-flex xs12 sm6 md4 xl3 v-if="createdMeetups.length < 3" class="px-2 py-2">
+      <v-flex xs12 sm6 md4 xl3 v-if="createdMeetups.length < 3 && createdMeetups.length" class="px-2 py-2">
         <v-card flat height="418px">
           <v-layout justify-center align-center fill-height>
             <v-btn flat large color="primary" @click="redirectToCreate">
@@ -55,10 +56,11 @@
               <div class="content">{{ item.description }}</div>
             </div>
           </v-card-title>
-          <v-card-actions>
+          <!-- <v-card-actions>
             <v-btn flat color="orange" @click="loadMeetup(item)">more</v-btn>
             <v-btn flat color="orange" @click="unregisterMeetup(item)">Unregister</v-btn>
-          </v-card-actions>
+          </v-card-actions> -->
+          <CardButton :item="item" v-on:unregister="unregisterMeetup(item)" v-on:more="loadMeetup(item)"></CardButton>
         </v-card>
       </v-flex>
     </v-layout>
@@ -66,9 +68,10 @@
 </template>
 <script>
 /* eslint-disable */
+import CardButton from '@/components/common/button'
 export default {
-  data() {
-    return {}
+  components: {
+    CardButton
   },
   methods: {
     deleteMeetup (item) {

@@ -12,10 +12,8 @@
               <div class="content">{{ item.description }}</div>
             </div>
           </v-card-title>
-          <v-card-actions>
-            <v-btn flat color="orange" @click="registerMeetup(item)">Join</v-btn>
-            <v-btn flat color="orange" @click="loadMeetup(item)">More</v-btn>
-          </v-card-actions>
+
+          <CardButton :item="item" v-on:register="registerMeetup(item)" v-on:unregister="unregisterMeetup(item)" v-on:more="loadMeetup(item)"></CardButton>
         </v-card>
       </v-flex>
     </v-layout>
@@ -23,7 +21,16 @@
 </template>
 <script>
 /* eslint-disable */
+import CardButton from '@/components/common/button'
 export default {
+  components: {
+    CardButton
+  },
+  data () {
+    return {
+      // user: this.$store.state.user
+    }
+  },
   computed: {
     meetups () {
       return this.$store.getters.loadedMeetups
@@ -36,6 +43,9 @@ export default {
     },
     registerMeetup (item) {
       this.$store.dispatch('registerMeetup', item)
+    },
+    unregisterMeetup (item) {
+      this.$store.dispatch('unregisterMeetup', item)
     }
   },
   created () {
