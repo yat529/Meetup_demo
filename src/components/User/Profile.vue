@@ -70,6 +70,7 @@
 </template>
 <script>
 /* eslint-disable */
+import * as firebase from 'firebase'
 import CardButton from '@/components/common/button'
 export default {
   components: {
@@ -108,7 +109,10 @@ export default {
     }
   },
   created () {
-    this.$store.commit('clearLoadedMeetUp')
+    let context = this.$store
+    if (!context.state.registeredMeetups.length && !context.state.createdMeetups.length) {
+      context.dispatch('loadUserMeetupsOnce')
+    }
   }
 }
 </script>

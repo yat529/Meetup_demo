@@ -15,7 +15,7 @@
               </div>
             </v-card-title>
 
-            <CardButton :item="item" v-on:register="registerMeetup(item)" v-on:unregister="unregisterMeetup(item)" v-on:more="loadMeetup(item)"></CardButton>
+            <CardButton :item="item" v-on:register="registerMeetup(item)" v-on:unregister="unregisterMeetup(item)" v-on:more="loadMeetup(item)" :showDelete="false"></CardButton>
           </v-card>
         </v-badge>
       </v-flex>
@@ -41,7 +41,6 @@ export default {
   },
   methods: {
     loadMeetup (item) {
-      this.$store.commit('loadMeetup', item)
       this.$router.push('/meetup/' + item.key)
     },
     registerMeetup (item) {
@@ -55,7 +54,7 @@ export default {
     }
   },
   created () {
-    this.$store.commit('clearLoadedMeetUp')
+    // this.$store.commit('clearLoadedMeetUp')
   }
 }
 </script>

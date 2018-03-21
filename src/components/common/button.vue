@@ -3,37 +3,46 @@
     <!-- only show to organizer -->
     <v-btn flat color="orange" v-if="isOrganizer" @click="eidt">Edit</v-btn>
     <!-- only if not organizer -->
-    <v-btn flat color="orange" @click="toggleRegister">{{ item.registered ? 'Joined' : 'Join'}}</v-btn>
+    <v-btn flat color="orange" v-if="!isOrganizer" @click="toggleRegister">{{ item.registered ? 'Joined' : 'Join'}}</v-btn>
     <v-btn flat color="orange" v-if="!hideMore" @click="more">More</v-btn>
     <v-btn flat color="orange" v-if="hideMore" @click="close">Close</v-btn>
+    <v-spacer></v-spacer>
+    <v-btn flat color="red" outline v-if="isOrganizer&&showDelete" @click="remove">Delete</v-btn>
   </v-card-actions>
 </template>
 
 <script>
 export default {
-  props: ['item', 'noMore'],
+  props: ['item', 'noMore', 'showDelete'],
   methods: {
     eidt () {
       this.$emit('edit')
     },
     toggleRegister () {
-      if (this.item.registered) {
-        this.$emit('unregister')
+      if (this.$store.state.user) {
+        if (this.item.registered) {
+          this.$emit('unregister')
+        } else {
+          this.$emit('register')
+        }
+        this.item.registered = !this.item.registered
       } else {
-        this.$emit('register')
+        this.$router.push('/signup')
       }
-      this.item.registered = !this.item.registered
     },
     more () {
       this.$emit('more')
     },
     close () {
       this.$emit('close')
+    },
+    remove () {
+      this.$emit('remove')
     }
   },
   computed: {
     isOrganizer () {
-      return this.item.uid === this.$store.state.user.uid
+      return this.$store.state.user && this.item.uid === this.$store.state.user.uid
     },
     hideMore () {
       return this.noMore

@@ -38,10 +38,11 @@
               <h3 class="primary--text mb-1">Followers</h3>
             </v-flex>
             <v-flex xs12 sm10>
-              <div class="seat" v-for="member in item.registeredMembers" :key="member.uid">
+              <!-- <div class="seat" v-for="member in item.registeredMembers" :key="member.uid">
                 <div class="avatar" :style="getAvatarBgUrl(member)"></div>
                 <p class="member-name">{{ member.nickname }}</p>
-              </div>
+              </div> -->
+              <Seats :group="item.registeredMembers" :max="5"></Seats>
             </v-flex>
           </v-layout>
 
@@ -65,12 +66,7 @@
 
           <v-layout row class="px-2 py-2">
             <v-flex>
-              <!-- <v-btn flat color="orange" v-if="registered" @click="unregisterMeetup(item)">Unregistered</v-btn>
-              <v-btn flat color="orange" v-if="!registered&&!isOrganizer" @click="registerMeetup(item)">Join</v-btn>
-              <v-btn flat color="orange" v-if="isOrganizer" @click="editMeetup(item)">Edit</v-btn>
-              <v-btn flat color="orange" v-if="isOrganizer" @click="deleteMeetup(item)">Delete</v-btn>
-              <v-btn flat color="orange" @click="closeMeetup()">Close</v-btn> -->
-              <CardButton :item="item" v-on:register="registerMeetup(item)" v-on:unregister="unregisterMeetup(item)" v-on:close="closeMeetup" :noMore="true"></CardButton>
+              <CardButton :item="item" v-on:register="registerMeetup(item)" v-on:unregister="unregisterMeetup(item)" v-on:remove="deleteMeetup(item)" v-on:close="closeMeetup" :noMore="true" :showDelete="true"></CardButton>
             </v-flex>
           </v-layout>
           
@@ -81,13 +77,16 @@
 </template>
 <script>
 /* eslint-disable */
+import Seats from '@/components/common/seats'
 import CardButton from '@/components/common/button'
 export default {
   components: {
+    Seats,
     CardButton
   },
   data() {
     return {
+      item: {},
       location: '',
       otherInfo: '',
     }
@@ -95,32 +94,38 @@ export default {
   methods: {
     registerMeetup (item) {
       this.$store.dispatch('registerMeetup', item)
+        .then(() => {
+          this.item = this.$store.state.loadedMeetup
+          this.$forceUpdate()
+        })
+      // this.$forceUpdate()
+      // console.log(item)
     },
     unregisterMeetup (item) {
       this.$store.dispatch('unregisterMeetup', item)
+        .then(() => {
+          this.item = this.$store.state.loadedMeetup
+          this.$forceUpdate()
+        })
+      // console.log(item)
     },
     closeMeetup () {
       this.$router.go(-1)
-      this.$store.commit('clearLoadedMeetUp')
+      // this.$store.commit('clearLoadedMeetUp')
     },
     editMeetup (item) {},
     deleteMeetup (item) {
-
-    },
-    getAvatarBgUrl (item) {
-      let avatarUrl = item.avatar
-      return `background-image: url("${ avatarUrl }")`
+      this.$store.dispatch('deleteMeetup', item)
+      .then(() => {
+        this.closeMeetup()
+      })
     }
+    // getAvatarBgUrl (item) {
+    //   let avatarUrl = item.avatar
+    //   return `background-image: url("${ avatarUrl }")`
+    // }
   },
   computed: {
-    item () {
-      if (!this.$store.state.loadedMeetup) {
-        let key = this.$route.params.id
-        let item = this.$store.state.loadedMeetups.find(meetup => meetup.key === key)
-        this.$store.commit('loadMeetup', item)
-      }
-      return this.$store.state.loadedMeetup
-    },
     avatarBgUrl () {
       let avatarUrl = this.item.organizer.avatar
       return `background-image: url("${ avatarUrl }")`
@@ -128,16 +133,22 @@ export default {
     organizer () {
       return this.item.organizer
     },
-    registered () {
-      let key = this.item.key
-      return this.$store.state.user_basic && this.$store.state.user_basic.registeredMeetups[key]
-    },
-    isOrganizer () {
-      return this.$store.state.user && this.$store.state.user.uid === this.item.uid
-    }
+    // registeredMembers () {
+    //   console.log(this.item.registeredMembers)
+    //   return this.item.registeredMembers
+    // }
   },
   created () {
-    
+    // cache loadedMeetup
+    let key = this.$route.params.id
+    let item = this.$store.state.loadedMeetups.find(meetup => meetup.key === key)
+    this.$store.commit('loadMeetup', item)
+    this.item = this.$store.state.loadedMeetup
+    // console.log(this.$store.state.loadedMeetup)
+  },
+  destroyed () {
+    // clear cache when closed
+    this.$store.commit('clearLoadedMeetUp')
   }
 }
 </script>
@@ -155,28 +166,28 @@ export default {
     }
   }
 
-  .seats {
-    overflow: hidden;
-    .seat {
-      float: left;
-      margin-left: 15px;
-      margin-bottom: 15px;
+  // .seats {
+  //   overflow: hidden;
+  //   .seat {
+  //     float: left;
+  //     margin-left: 15px;
+  //     margin-bottom: 15px;
 
-      .avatar {
-        display: inline-block;
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        border: 3px solid #eeeeee;
-        background-position: center;
-        background-size: cover;
-      }
+  //     .avatar {
+  //       display: inline-block;
+  //       width: 50px;
+  //       height: 50px;
+  //       border-radius: 50%;
+  //       border: 3px solid #eeeeee;
+  //       background-position: center;
+  //       background-size: cover;
+  //     }
 
-      .member-name {
-        text-align: center;
-      }
-    }
-  }
+  //     .member-name {
+  //       text-align: center;
+  //     }
+  //   }
+  // }
 
   .location {
     .map {
