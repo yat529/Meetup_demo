@@ -2,7 +2,7 @@
   <v-container class="meetups" v-if="meetups">
     <v-layout row wrap>
       <v-flex xs12 sm6 md4 xl3 v-for="item in meetups" :key="item.key" class="px-2 py-2">
-        <v-badge left overlap color="green">
+        <v-badge left overlap color="green" class="card-wrapper">
           <v-icon slot="badge" dark v-if="registered(item)">check_circle</v-icon>
           <v-card flat>
             <v-card-media :src="item.imageUrl" height="200px">
@@ -29,11 +29,6 @@ export default {
   components: {
     CardButton
   },
-  data () {
-    return {
-      // user: this.$store.state.user
-    }
-  },
   computed: {
     meetups () {
       return this.$store.getters.loadedMeetups
@@ -52,17 +47,18 @@ export default {
     registered (item) {
       return item.registered
     }
-  },
-  created () {
-    // this.$store.commit('clearLoadedMeetUp')
   }
 }
 </script>
 <style lang="scss" scoped>
 .meetups {
-  .content {
-    height: 65px;
-    overflow: hidden;
+  .card-wrapper {
+    width: 100%;
+
+    .content {
+      height: 65px;
+      overflow: hidden;
+    } 
   }
 }
 </style>

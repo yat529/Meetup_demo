@@ -31,8 +31,7 @@ export default new Router({
   routes: [
     {
       path: '/',
-      name: 'Home',
-      component: Home
+      redirect: '/meetups'
     },
     {
       path: '/meetups',

@@ -10,6 +10,13 @@
           <v-list-tile-content>{{ item.title }}</v-list-tile-content>
         </v-list-tile>
         <!-- end -->
+        <!-- Sign out -->
+        <v-list-tile @click="signOut">
+          <v-list-tile-action>
+            <v-icon>face</v-icon>
+          </v-list-tile-action>
+          <v-list-tile-content>Sign Out</v-list-tile-content>
+        </v-list-tile>
       </v-list>
     </v-navigation-drawer>
 
@@ -35,13 +42,6 @@
       <router-view/>
     </v-content>
 
-    <!-- <v-footer app class="primary" dark>
-      <v-layout row class="text-xs-center">
-        <v-flex >
-          <span>Meetup &copy; 2017</span>
-        </v-flex>
-      </v-layout>
-    </v-footer> -->
   </v-app>
 </template>
 

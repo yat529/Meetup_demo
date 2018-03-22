@@ -23,9 +23,9 @@
           </v-card-media>
           <!-- card body -->
           <v-layout row class="orgnizer px-2 py-2 mb-3">
-            <v-flex xs12 sm2 class="text-xs-center">
+            <v-flex xs12 sm2 class="text-xs-center" v-if="item.organizer">
               <div class="avatar" :style="avatarBgUrl"></div>
-              <p class="primary--text">{{ organizer.nickname }}</p>
+              <p class="primary--text">{{ item.organizer.nickname }}</p>
             </v-flex>
             <v-flex xs12 sm10>
               <h3 class="primary--text">Information</h3>
@@ -51,7 +51,9 @@
               <h3 class="primary--text mb-1">Location</h3>
             </v-flex>
             <v-flex xs12 sm10>
-              <div class="map"></div>
+              <div class="map">
+                <Location :item="item"></Location>
+              </div>
             </v-flex>
           </v-layout>
 
@@ -77,17 +79,19 @@
 </template>
 <script>
 /* eslint-disable */
+import * as firebase from 'firebase'
 import Seats from '@/components/common/seats'
 import CardButton from '@/components/common/button'
+import Location from '@/components/common/location'
+
 export default {
   components: {
     Seats,
-    CardButton
+    CardButton,
+    Location
   },
   data() {
     return {
-      item: {},
-      location: '',
       otherInfo: '',
     }
   },
@@ -98,8 +102,6 @@ export default {
           this.item = this.$store.state.loadedMeetup
           this.$forceUpdate()
         })
-      // this.$forceUpdate()
-      // console.log(item)
     },
     unregisterMeetup (item) {
       this.$store.dispatch('unregisterMeetup', item)
@@ -120,31 +122,52 @@ export default {
         this.closeMeetup()
       })
     }
-    // getAvatarBgUrl (item) {
-    //   let avatarUrl = item.avatar
-    //   return `background-image: url("${ avatarUrl }")`
-    // }
   },
   computed: {
     avatarBgUrl () {
+      if (!this.item || !this.item.organizer) return false
       let avatarUrl = this.item.organizer.avatar
       return `background-image: url("${ avatarUrl }")`
     },
     organizer () {
-      return this.item.organizer
+      // return this.item.organizer
     },
-    // registeredMembers () {
-    //   console.log(this.item.registeredMembers)
-    //   return this.item.registeredMembers
-    // }
+    item () {
+      // cache loadedMeetup
+      let key = this.$route.params.id
+      let item = this.$store.state.loadedMeetups.find(meetup => meetup.key === key)
+
+      if (!item) {
+        // load from firebase
+        firebase.database().ref('meetups').child(key).once('value')
+        .then(snapshot => {
+          item = snapshot.val()
+          this.$store.commit('formatMeetup', item)
+        })
+      } else {
+        this.$store.commit('loadMeetup', item)
+      }
+
+      return item
+    }
   },
   created () {
     // cache loadedMeetup
-    let key = this.$route.params.id
-    let item = this.$store.state.loadedMeetups.find(meetup => meetup.key === key)
-    this.$store.commit('loadMeetup', item)
-    this.item = this.$store.state.loadedMeetup
-    // console.log(this.$store.state.loadedMeetup)
+    // let key = this.$route.params.id
+    // let item = this.$store.state.loadedMeetups.find(meetup => meetup.key === key)
+
+    // if (!item) {
+    //   // load from firebase
+    //   firebase.database().ref('meetups').child(key).once('value')
+    //   .then(snapshot => {
+    //     let meetup = snapshot.val()
+    //     this.$store.commit('formatMeetup', meetup)
+    //     this.item = this.$store.state.loadedMeetup
+    //   })
+    // } else {
+    //   this.$store.commit('loadMeetup', item)
+    //   this.item = this.$store.state.loadedMeetup
+    // }
   },
   destroyed () {
     // clear cache when closed
@@ -165,30 +188,6 @@ export default {
       background-size: cover;
     }
   }
-
-  // .seats {
-  //   overflow: hidden;
-  //   .seat {
-  //     float: left;
-  //     margin-left: 15px;
-  //     margin-bottom: 15px;
-
-  //     .avatar {
-  //       display: inline-block;
-  //       width: 50px;
-  //       height: 50px;
-  //       border-radius: 50%;
-  //       border: 3px solid #eeeeee;
-  //       background-position: center;
-  //       background-size: cover;
-  //     }
-
-  //     .member-name {
-  //       text-align: center;
-  //     }
-  //   }
-  // }
-
   .location {
     .map {
       width: 100%;

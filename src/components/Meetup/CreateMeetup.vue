@@ -20,12 +20,8 @@
               ></v-text-field>
 
               <!-- location input -->
-              <v-text-field
-                label="Location"
-                hint="This field is not required"
-                v-model="location"
-              ></v-text-field>
-
+              <google-map class="mb-5"></google-map>
+              
               <!-- image insertion -->
               <fileloader></fileloader>
 
@@ -105,15 +101,16 @@
 <script>
 /* eslint-disable */
 import fileloader from '@/components/common/fileloader'
+import googleMap from '@/components/common/map'
 
 export default {
   components: {
-    fileloader
+    fileloader,
+    googleMap
   },
   data () {
     return {
       title: '',
-      location: '',
       // imageUrl: '',
       description: '',
       date: null,
@@ -127,24 +124,29 @@ export default {
       const meetup = {
         title: this.title,
         location: this.location,
-        // imageUrl: this.imageUrl,
         description: this.description,
         date: this.formattedDate
       }
-      this.$store.dispatch('createMeetup', meetup)
-        .then(() => {
-          this.$router.push('/meetups')
-        })
+
+      if (this.validForm) {
+        this.$store.dispatch('createMeetup', meetup)
+          .then(() => {
+            this.$router.push('/meetups')
+          })
+      }
     }
   },
   computed: {
     validForm () {
       return this.title.length && 
-      this.location.length &&
+      this.location &&
       this.description.length
     },
     formattedDate () {
       return `${this.date} ${this.time}`
+    },
+    location () {
+      return this.$store.state.gmLocation
     }
   },
   created () {

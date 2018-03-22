@@ -1,3 +1,4 @@
+/* eslint-disable */
 // The Vue build version to load with the `import` command
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import Vue from 'vue'
@@ -12,10 +13,21 @@ import {store} from './store'
 // import filters
 import DateFilter from './filter/date.js'
 
+
+// init firebase
 import firebaseConfig from './firebase.js'
 import * as firebase from 'firebase'
-
 firebase.initializeApp(firebaseConfig)
+
+// init vue2-google-map
+import * as VueGoogleMaps from 'vue2-google-maps'
+import GoogleMapsAPIKey from './googlemaps.js'
+Vue.use(VueGoogleMaps, {
+  load: {
+    key: GoogleMapsAPIKey.key,
+    libraries: 'places'
+  }
+})
 
 // Theme Colors
 const ThemeColors = {

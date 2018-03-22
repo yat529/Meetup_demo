@@ -22,7 +22,13 @@ export const store = new Vuex.Store({
     errorAlet: false,
     // fileloader related
     flimage: null,
-    flimageTempUrl: null
+    flimageTempUrl: null,
+    // google map related
+    gmLocation: {
+      address: '',
+      lat: undefined,
+      lng: undefined
+    }
   },
   getters: {
     // loadedMeetups and sort
@@ -56,6 +62,21 @@ export const store = new Vuex.Store({
     }
   },
   mutations: {
+    // format meetup from firebase to match with local cache format
+    formatMeetup (state, meetup) {
+      let obj = {}
+      let registeredMembers = []
+      Object.keys(meetup).forEach(key => {
+        if (key === 'registeredMembers') {
+          Object.keys(meetup[key]).forEach(item => {
+            registeredMembers.push(meetup[key][item])
+          })
+        }
+        Vue.set(obj, key, meetup[key])
+      })
+      Vue.set(obj, 'registeredMembers', registeredMembers)
+      state.loadedMeetup = obj
+    },
     // local meetups
     cacheMeetups (state, meetup) {
       let obj = {}
@@ -163,6 +184,11 @@ export const store = new Vuex.Store({
     signUserOut (state) {
       state.user = null
       state.user_basic = null
+      state.loadedMeetups.forEach(meetup => {
+        if (meetup.registered) {
+          meetup.registered = null
+        }
+      })
       console.log('user signed out')
     },
     addUserCreatedMeetup (state, payload) {
@@ -253,6 +279,13 @@ export const store = new Vuex.Store({
       state.flimage = null
       state.flimageTempUrl = null
     },
+    // google map location cache
+    setGoogleMapLocation (state, payload) {
+      state.gmLocation = payload
+    },
+    clearGoogleMapLocation (state) {
+      state.gmLocation = null
+    },
     // other state info
     setLoading (state, payload) {
       state.loading = payload
@@ -327,6 +360,8 @@ export const store = new Vuex.Store({
           context.commit('setLoading', false)
           // clear fileloader cache
           context.commit('clearFileLoaderCache')
+          // clear google map location cache
+          context.commit('clearGoogleMapLocation')
           // able to chain promise in component methods
           resolve()
         })
