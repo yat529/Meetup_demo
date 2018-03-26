@@ -34,6 +34,9 @@ export default {
     that.$nextTick(() => {
       let elem = that.$refs.map
       let input = that.$refs.setAddress.$el.querySelector('input')
+      // !important, overwirte the default value set by google api
+      input.placeholder = ''
+      
       let option = {
         zoom: that.zoom
       }
