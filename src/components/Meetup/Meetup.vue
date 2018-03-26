@@ -52,7 +52,7 @@
             </v-flex>
             <v-flex xs12 sm10>
               <div class="map">
-                <Location :item="item"></Location>
+                <loadLocationMap :item="item"></loadLocationMap>
               </div>
             </v-flex>
           </v-layout>
@@ -82,13 +82,13 @@
 import * as firebase from 'firebase'
 import Seats from '@/components/common/seats'
 import CardButton from '@/components/common/button'
-import Location from '@/components/common/location'
+import loadLocationMap from '@/components/common/loadLocation'
 
 export default {
   components: {
     Seats,
     CardButton,
-    Location
+    loadLocationMap
   },
   data() {
     return {
@@ -128,9 +128,6 @@ export default {
       if (!this.item || !this.item.organizer) return false
       let avatarUrl = this.item.organizer.avatar
       return `background-image: url("${ avatarUrl }")`
-    },
-    organizer () {
-      // return this.item.organizer
     },
     item () {
       // cache loadedMeetup

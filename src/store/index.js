@@ -26,8 +26,10 @@ export const store = new Vuex.Store({
     // google map related
     gmLocation: {
       address: '',
-      lat: undefined,
-      lng: undefined
+      LatLng: {
+        lat: undefined,
+        lng: undefined
+      }
     }
   },
   getters: {
@@ -54,7 +56,7 @@ export const store = new Vuex.Store({
       if (state.user) {
         menuItems = [
           { icon: 'supervisor_account', title: 'View Meetups', link: '/meetups' },
-          { icon: 'room', title: 'Create Meetup', link: 'addmeetup' },
+          { icon: 'room', title: 'Create Meetup', link: '/addmeetup' },
           { icon: 'person', title: 'Profile', link: '/profile' }
         ]
       }
@@ -281,7 +283,10 @@ export const store = new Vuex.Store({
     },
     // google map location cache
     setGoogleMapLocation (state, payload) {
-      state.gmLocation = payload
+      // state.gmLocation = payload
+      state.gmLocation.address = payload.address
+      state.gmLocation.LatLng.lat = payload.LatLng.lat
+      state.gmLocation.LatLng.lng = payload.LatLng.lng
     },
     clearGoogleMapLocation (state) {
       state.gmLocation = null

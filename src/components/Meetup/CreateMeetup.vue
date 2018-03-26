@@ -20,7 +20,7 @@
               ></v-text-field>
 
               <!-- location input -->
-              <google-map class="mb-5"></google-map>
+              <setLocationMap class="mb-5"></setLocationMap>
               
               <!-- image insertion -->
               <fileloader></fileloader>
@@ -101,12 +101,12 @@
 <script>
 /* eslint-disable */
 import fileloader from '@/components/common/fileloader'
-import googleMap from '@/components/common/map'
+import setLocationMap from '@/components/common/setLocation'
 
 export default {
   components: {
     fileloader,
-    googleMap
+    setLocationMap
   },
   data () {
     return {
