@@ -23,7 +23,31 @@
               <setLocationMap class="mb-5"></setLocationMap>
               
               <!-- image insertion -->
-              <fileloader></fileloader>
+              <fileloader class="mb-3"></fileloader>
+
+              <!-- group size/seats -->
+              <v-layout row>
+                <!-- <v-flex xs6>
+                  <div class="title">Group Size</div>
+                </v-flex> -->
+                <v-flex xs12>
+                  <v-select
+                    :items="sizes"
+                    v-model="groupSize"
+                    v-if="!customSize"
+                    label="Group Size"
+                    required
+                  ></v-select>
+                  <v-text-field
+                    label="Group Size"
+                    v-model="size"
+                    v-if="customSize"
+                    mask="###"
+                    required
+                  ></v-text-field>
+                </v-flex>
+              </v-layout>
+              
 
               <!-- description textarea -->
               <v-text-field
@@ -115,7 +139,10 @@ export default {
       date: null,
       dateModal: false,
       time: null,
-      timeModal: false
+      timeModal: false,
+      groupSize: null,
+      size: null,
+      sizes: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,'Other']
     }
   },
   methods: {
@@ -123,6 +150,7 @@ export default {
       const meetup = {
         title: this.title,
         location: this.location,
+        size: this.customSize ? (typeof this.size === 'number' ? this.size : parseInt(this.size)) : this.groupSize,
         description: this.description,
         date: this.formattedDate
       }
@@ -139,13 +167,18 @@ export default {
     validForm () {
       return this.title.length && 
       this.$store.state.gmLocation.address.length &&
-      this.description.length
+      (this.customSize ? this.size : this.groupSize) &&
+      this.description.length &&
+      this.date && this.time
     },
     formattedDate () {
       return `${this.date} ${this.time}`
     },
     location () {
       return this.$store.state.gmLocation
+    },
+    customSize () {
+      return this.groupSize === 'Other'
     }
   },
   created () {

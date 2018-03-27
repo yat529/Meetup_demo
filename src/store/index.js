@@ -329,6 +329,7 @@ export const store = new Vuex.Store({
       let meetup = {
         title: newMeetup.title,
         location: newMeetup.location,
+        size: newMeetup.size,
         description: newMeetup.description,
         date: newMeetup.date,
         uid: context.state.user ? context.state.user.uid : undefined,
