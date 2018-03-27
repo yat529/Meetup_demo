@@ -20,10 +20,10 @@
       </v-list>
     </v-navigation-drawer>
 
-    <v-toolbar class="primary" dark>
+    <v-toolbar class="primary nav" dark flat>
       <v-toolbar-side-icon class="hidden-md-and-up" @click.stop="sideNav = !sideNav"></v-toolbar-side-icon>
       <v-toolbar-title>
-        <router-link to="/" tag="span" style="cursor: pointer">{{ title }}</router-link>
+        <router-link to="/home" tag="span" style="cursor: pointer">{{ title }}</router-link>
       </v-toolbar-title>
       <v-spacer></v-spacer>
       <!-- Topbar Menu Buttons -->
@@ -39,7 +39,10 @@
 
     <v-content>
       <loader v-if="loading"></loader>
-      <router-view/>
+      <keep-alive>
+        <router-view/>
+      </keep-alive>
+      
     </v-content>
 
   </v-app>
@@ -85,5 +88,4 @@ export default {
 }
 </script>
 <style lang="scss">
-
 </style>

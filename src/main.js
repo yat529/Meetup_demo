@@ -21,16 +21,18 @@ firebase.initializeApp(firebaseConfig)
 
 // init vue2-google-map
 // import * as VueGoogleMaps from 'vue2-google-maps'
-import {initMap} from './plugins/googleMaps.js'
-import GoogleMapsAPIKey from './googlemaps.js'
-Vue.use(initMap, {
-  key: GoogleMapsAPIKey.key,
-  libraries: 'places'
-})
+import {initMap} from './plugins/googleMapsInit.js'
+import GoogleMapsAPIKey from './googlemapsapi.js'
+// console.log('init api')
+// Vue.use(initMap, {
+//   key: GoogleMapsAPIKey.key,
+//   libraries: 'places'
+// })
 
 // Theme Colors
 const ThemeColors = {
-  primary: '#1976D2',
+  // primary: '#1976D2',
+  primary: '#a1887f',
   secondary: '#424242',
   accent: '#82B1FF',
   error: '#FF5252',

@@ -70,6 +70,11 @@ export default new Router({
       path: '/signin',
       name: 'Signin',
       component: Signin
+    },
+    {
+      path: '/home',
+      name: 'Home',
+      component: Home
     }
   ],
   mode: 'history'

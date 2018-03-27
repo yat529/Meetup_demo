@@ -6,7 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 firebase/
 firebase.js
-googlemaps.js
+googlemapsapi.js
 
 # Editor directories and files
 .idea
