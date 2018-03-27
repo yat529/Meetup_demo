@@ -139,6 +139,7 @@ export default {
         firebase.database().ref('meetups').child(key).once('value')
         .then(snapshot => {
           item = snapshot.val()
+          if (!item) return
           this.$store.commit('formatMeetup', item)
         })
       } else {

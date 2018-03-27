@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <v-layout row>
-      <v-flex xs12 sm6 offset-sm3>
+      <v-flex xs12 sm8 offset-sm2>
         <v-card>
           <!-- header toolbar -->
           <v-toolbar color="primary" dark>
@@ -111,7 +111,6 @@ export default {
   data () {
     return {
       title: '',
-      // imageUrl: '',
       description: '',
       date: null,
       dateModal: false,
@@ -139,7 +138,7 @@ export default {
   computed: {
     validForm () {
       return this.title.length && 
-      this.location &&
+      this.$store.state.gmLocation.address.length &&
       this.description.length
     },
     formattedDate () {

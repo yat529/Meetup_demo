@@ -290,6 +290,13 @@ export const store = new Vuex.Store({
     },
     clearGoogleMapLocation (state) {
       state.gmLocation = null
+      state.gmLocation = {
+        address: '',
+        LatLng: {
+          lat: undefined,
+          lng: undefined
+        }
+      }
     },
     // other state info
     setLoading (state, payload) {
@@ -333,27 +340,30 @@ export const store = new Vuex.Store({
       }
       return new Promise((resolve, reject) => {
         context.commit('setLoading', true)
-        firebase.database().ref('meetups').push(meetup)
+        return firebase.database().ref('meetups').push(meetup)
         .then(reference => {
           key = reference.key
-          // parse the file ext
           file = context.state.flimage
-          let name = file.name
-          fileExt = name.slice(name.lastIndexOf('.'))
-          // upload the file
-          return firebase.storage().ref('meetups/images').child(key + fileExt).put(file)
-        })
-        .then(snapshot => {
-          // get the image url in firebase storage
-          imageUrl = snapshot.metadata.downloadURLs[0]
-          return firebase.database().ref('/meetups').child(key).update({
-            imageExt: fileExt,
-            imageUrl: imageUrl
-          })
-        })
-        .then(() => {
-          // updated createdMeetups in users entry
-          return firebase.database().ref('/users').child(meetup.uid).child('createdMeetups').child(key).set(true)
+          if (file) {
+            let name = file.name
+            fileExt = name.slice(name.lastIndexOf('.'))
+            // upload the file
+            return firebase.storage().ref('meetups/images').child(key + fileExt).put(file)
+            .then(snapshot => {
+              // get the image url in firebase storage
+              imageUrl = snapshot.metadata.downloadURLs[0]
+              firebase.database().ref('/meetups').child(key).update({
+                imageExt: fileExt,
+                imageUrl: imageUrl
+              })
+            })
+            .then(() => {
+              // updated createdMeetups in users entry
+              firebase.database().ref('/users').child(meetup.uid).child('createdMeetups').child(key).set(true)
+            })
+          } else {
+            firebase.database().ref('/users').child(meetup.uid).child('createdMeetups').child(key).set(true)
+          }
         })
         .then(() => {
           // add property to meetup obj
