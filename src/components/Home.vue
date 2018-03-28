@@ -68,8 +68,8 @@ export default {
       map.locate({
         position: position,
         zoom: 14
-      })
-      return filterMarkers(position)
+      }, false)
+      return filterMarkers(position, meetups)
     }
 
     // if no place cache in the store, show the modal
@@ -78,36 +78,53 @@ export default {
       map.locate({
         position: toDB.LatLng,
         zoom: 14
-      })
+      }, false)
       that.$store.commit('setGoogleMapLocation', toDB)
       that.dialog = false
-      filterMarkers(position)
+      filterMarkers(position, meetups)
+    })
+
+    // drag event
+    map._map.addListener('dragend', () => {
+      let centerLatLng = {
+        lat: map._map.getCenter().lat(),
+        lng: map._map.getCenter().lng()
+      }
+      filterMarkers(centerLatLng, meetups, false)
     })
 
     // helper function 
-    function filterMarkers (position) {
-      let latlngbounds = new google.maps.LatLngBounds(),
-          myLocation = new google.maps.LatLng(position)
+    function filterMarkers (myLocation, meetups, autoBound = true) {
+      let latlngbounds = autoBound ? new google.maps.LatLngBounds() : null,
+          myLocationLatLng = new google.maps.LatLng(myLocation)
 
       meetups.forEach(meetup => {
-        let meetupLocation = new google.maps.LatLng(meetup.location.LatLng)
-        distance = google.maps.geometry.spherical.computeDistanceBetween(meetupLocation, myLocation) / 1000
-        if (distance > 10) return
+        let meetupLocation = meetup.location.LatLng,
+            meetupLocationLatLng = new google.maps.LatLng(meetupLocation)
 
-        let position = meetup.location.LatLng,
-            date = meetup.date.split(' ')[0],
+        let hasMarker = map.markers.find(marker => {
+          return marker.getPosition().equals(meetupLocationLatLng)
+        })
+        if (hasMarker) return
+
+        let distance = google.maps.geometry.spherical.computeDistanceBetween(meetupLocationLatLng, myLocationLatLng) / 1000
+        if (distance > 5) return
+
+        let date = meetup.date.split(' ')[0],
             time = meetup.date.split(' ')[1],
             size = meetup.size,
             seatHtml = '',
             members = meetup.registeredMembers
 
         // add markers
-        members.forEach(member => {
-          seatHtml += `<div class="seat" style="background-image: url('${member.avatar}')"></div>`
-        })
+        if (members) {
+          members.forEach(member => {
+            seatHtml += `<div class="seat" style="background-image: url('${member.avatar}')"></div>`
+          })
 
-        for (let i = members.length; i < size; i++) {
-          seatHtml += `<div class="seat vacant"></div>`
+          for (let i = members.length; i < size; i++) {
+            seatHtml += `<div class="seat vacant"></div>`
+          }
         }
         
         let html = `
@@ -136,13 +153,17 @@ export default {
 
         // add marker
         let markerOpt = {
-          position: position
+          position: meetupLocation,
+          animation: google.maps.Animation.DROP
         }
         map.addMarkerOverlay(markerOpt, html)
-        // bound markers
-        latlngbounds.extend(position);
-        map._map.fitBounds(latlngbounds)
-        map._map.setZoom(14)
+
+        // whether to autobound markers
+        if (autoBound && latlngbounds) {
+          latlngbounds.extend(meetupLocationLatLng);
+          map._map.fitBounds(latlngbounds)
+          map._map.setZoom(14)
+        }
       })
     }
 

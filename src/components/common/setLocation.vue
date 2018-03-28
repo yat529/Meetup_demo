@@ -42,11 +42,11 @@ export default {
       }
       let map = new Map(elem, option).locate(null, false)
 
-      map.autocomplete(input, toDB => {
+      map.autocomplete(input, null, toDB => {
         map.locate({
           position: toDB.LatLng,
           zoom: 14
-        })
+        }, true)
         that.$store.commit('setGoogleMapLocation', toDB)
       })
     })

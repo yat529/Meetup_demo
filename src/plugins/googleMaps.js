@@ -3,7 +3,7 @@
 // map class
 function Map (element, option, input = null, cb = null) {
   this._map = null
-  this.marker = null
+  // this.marker = null
   this.location = null
   this.toDB = null
 
@@ -274,7 +274,6 @@ Map.prototype.autocomplete = function (input, btn = null, cb) {
     console.log('Input element missing.')
     return this
   }
-  console.log(input)
 
   let that = this,
       searchBox = new google.maps.places.SearchBox(input)
@@ -372,10 +371,10 @@ Map.prototype.autocomplete = function (input, btn = null, cb) {
 
 Map.prototype.locate = function (option = null, showMarker = true) {
   // clear cache
-  if (this.marker) {
-    this.marker.setMap(null)
-    this.marker = null
-  }
+  // if (this.marker) {
+  //   this.marker.setMap(null)
+  //   this.marker = null
+  // }
 
   let opt = option || {}
   
@@ -389,9 +388,10 @@ Map.prototype.locate = function (option = null, showMarker = true) {
   }
 
   if (showMarker) {
-    opt.map = this._map
-    this.marker = new google.maps.Marker({
-      map: this._map
+    // opt.map = this._map
+    let marker = new google.maps.Marker({
+      map: this._map,
+      position: opt.position
     })
   }
 
@@ -447,9 +447,8 @@ Overlay.prototype.onRemove = function () {
 Overlay.prototype.draw = function () {
   let markerPos = this.marker.getPosition()
   let ovrlyPos = this.getProjection().fromLatLngToDivPixel(markerPos)
-
-  this.layer.style.top = ovrlyPos.y + 'px'
-  this.layer.style.left = ovrlyPos.x + 'px'
+  this.layer.style.top = (ovrlyPos.y - 206) + 'px'
+  this.layer.style.left = (ovrlyPos.x + 30) + 'px'
 }
 
 Overlay.prototype.open = function (map) {
