@@ -284,7 +284,9 @@ export const store = new Vuex.Store({
     // google map location cache
     setGoogleMapLocation (state, payload) {
       // state.gmLocation = payload
+      state.gmLocation.name = payload.name
       state.gmLocation.address = payload.address
+      state.gmLocation.address_details = payload.address_details
       state.gmLocation.LatLng.lat = payload.LatLng.lat
       state.gmLocation.LatLng.lng = payload.LatLng.lng
     },

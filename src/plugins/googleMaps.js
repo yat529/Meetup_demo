@@ -1,6 +1,4 @@
 /* eslint-disable */
-// import Vue from 'vue'
-console.log('buging')
 
 // map class
 function Map (element, option, input = null, cb = null) {
@@ -12,29 +10,26 @@ function Map (element, option, input = null, cb = null) {
   // cache data
   this.markers = []
 
-  this.init(element, option, input, cb)
+  this.init(element, option)
 }
 
-Map.prototype.init = function (element, option, input = null, cb = null) {
+Map.prototype.init = function (element, option) {
   let gmapOption = {},
-      styles,
-      that = this
+      styles
 
-  // get HTML5 geolocation
-  that._geolocate()
-
-  // copy option
   if (option) {
     Object.keys(option).forEach(key => {
       gmapOption[key] = option[key]
     })
   }
   
-  // dafualt location if still null
-  gmapOption.center = that.location || {
+  gmapOption.center = gmapOption.center || {
     lat: 40.73,
     lng: -74.00
   }
+
+  // save to location property
+  this.location = gmapOption.center
 
   // apply styles
   styles = [
@@ -253,48 +248,81 @@ Map.prototype.init = function (element, option, input = null, cb = null) {
     }
   ]
   gmapOption.styles = styles
-  
+
   // init map
-  that._map = new google.maps.Map(element, gmapOption)
-  // listen for input address change
-  if (input && cb) {
-    that._autocomplete(input, cb)
-  }
+  this._map = new google.maps.Map(element, gmapOption)
 }
 
-Map.prototype._geolocate = function () {
+Map.prototype.geolocate = function () {
+  let that = this
+
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition( position => {
-      this.location = {
+      that.location = {
         lat: position.coords.latitude,
         lng: position.coords.longitude
       }
     })
+  } else {
+    console.log('Browser Geolocation disabled.')
   }
+  return that
 }
 
-Map.prototype._autocomplete = function (input, cb) {
-  let that = this
-  let searchBox = new google.maps.places.SearchBox(input)
+Map.prototype.autocomplete = function (input, cb) {
+  if (!input) {
+    console.log('Input element missing.')
+    return this
+  }
+
+  let that = this,
+      searchBox = new google.maps.places.SearchBox(input)
 
   searchBox.addListener('places_changed', () => {
     let places = searchBox.getPlaces()
-    if (!places.length) return
-
+    if (!places.length) {
+      console.log('Autocomplete fails, no places match')
+      return this
+    }
     places.forEach(place => {
       if (!place.geometry) {
         console.log('Returned place contains no geometry');
-        return;
+        return this
       }
 
       // save & location
-      that.address = place.formatted_address
       that.location = place.geometry.location
-      that.locate()
+
+      // location details
+      let address_details = {},
+          addres_formatted = place.formatted_address
+          name = place.name
+          // extract info from place if needed
+          // console.log(place)
+      if (place.address_components) {
+        place.address_components.forEach((component, index) => {
+          switch (component.types[0]) {
+            case 'sublocality_level_1':
+              address_details['city'] = component['short_name']
+              break
+            case 'administrative_area_level_1':
+              address_details['state'] = component['short_name']
+              break
+            case 'country':
+              address_details['country'] = component['short_name']
+              break
+            case 'postal_code':
+              address_details['postal_code'] = component['short_name']
+              break
+          }
+        })
+      }
 
       // save to toDB
       that.toDB = {
-        address: that.address,
+        name: name,
+        address: addres_formatted,
+        address_details: address_details,
         LatLng: {
           lat: that.location.lat(),
           lng: that.location.lng()
@@ -302,28 +330,39 @@ Map.prototype._autocomplete = function (input, cb) {
       }
     })
 
-    // run callback
+    // export place data with callback
     if (cb) {
       cb(that.toDB)
     }
   })
 }
 
-Map.prototype.locate = function (option) {
+Map.prototype.locate = function (option = null, showMarker = true) {
   // clear cache
   if (this.marker) {
     this.marker.setMap(null)
     this.marker = null
   }
 
-  let opt = option || {
-    position: this.location
+  let opt = option || {}
+  
+  if (!opt.position) {
+    opt.position = this.location
   }
-  opt.map = this._map
-
-  // add marker and re-position
-  this.marker = new google.maps.Marker(opt)
   this._map.setCenter(opt.position)
+
+  if (opt.zoom) {
+    this._map.setZoom(opt.zoom)
+  }
+
+  if (showMarker) {
+    opt.map = this._map
+    this.marker = new google.maps.Marker({
+      map: this._map
+    })
+  }
+
+  return this
 }
 
 Map.prototype.addMarkerOverlay = function (option, html) {

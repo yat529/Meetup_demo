@@ -1,17 +1,29 @@
 <template>
-  <div class="map-wrapper" ref="homeMap"></div>
+  <div class="map-wrapper" >
+    <div class="google-map" ref="homeMap"></div>
+    <div class="input">
+      <input type="text" class="postal-code" v-model="postal_code" ref="addressInput">
+      {{postal_code}}
+    </div>
+  </div>
 </template>
 
 <script>
 /* eslint-disable */
+import firebase from 'firebase'
 import {Map} from '@/plugins/googleMaps'
 
 export default {
   data() {
-    return {}
+    return {
+      postal_code: ''
+    }
   },
   computed: {
     //
+  },
+  created () {
+    // firebase.database().ref('meetups')
   },
   mounted () {
     let that = this,
@@ -19,54 +31,86 @@ export default {
         elem = that.$refs.homeMap,
         option = {
           zoom: 13
-        },
+        }
+        
+    let input = this.$refs.addressInput,
         map = new Map(elem, option)
 
-    meetups.forEach(meetup => {
-      let position = meetup.location.LatLng,
-          date = meetup.date.split(' ')[0],
-          time = meetup.date.split(' ')[1],
-          size = meetup.size,
-          seatHtml = '',
-          members = meetup.registeredMembers
-
-      members.forEach(member => {
-        seatHtml += `<div class="seat" style="background-image: url('${member.avatar}')"></div>`
+    map.autocomplete(input, toDB => {
+      map.locate({
+        position: toDB.LatLng,
+        zoom: 14
       })
+      that.$store.commit('setGoogleMapLocation', toDB)
 
-      for (let i = members.length; i < size; i++) {
-        seatHtml += `<div class="seat vacant"></div>`
+      let latlngbounds = new google.maps.LatLngBounds()
+      let myLocation = {
+        lat: that.$store.state.gmLocation.LatLng.lat,
+        lng: that.$store.state.gmLocation.LatLng.lng
       }
-      
-      let html = `
-        <div class="cus_info_container">
-          <div class="image" style="background-image: url('${meetup.imageUrl}')"></div>
-          <div class="infoBox">
-            <h3 class="info_name">${meetup.title}</h3>
-            <div class="info_desc">${meetup.description}</div>
-          </div>
-          <div class="seats">
-            <div class="seat organizer" style="background-image: url('${meetup.organizer.avatar}')"></div>
-          `
-          + seatHtml +
-          `
-          </div>
-          <div class="schedule">
-            <div class="date bar">${date}</div>
-            <div class="time bar">${time}</div>
-            <div class="vacancy">${size} Seats Left</div>
-          </div>
-          <div class="action">
-            <a class="button join" href="/meetup/${meetup.key}">Join</a>
-            <a class="button more" href="/meetup/${meetup.key}">More</a>
-          </div>
-        </div>`
+      myLocation = new google.maps.LatLng(myLocation)
 
-      // add marker
-      let markerOpt = {
-        position: position
-      }
-      map.addMarkerOverlay(markerOpt, html)
+      meetups.forEach(meetup => {
+
+        let meetupLocation = {
+          lat: meetup.location.LatLng.lat,
+          lng: meetup.location.LatLng.lng
+        }
+        meetupLocation = new google.maps.LatLng(meetupLocation)
+
+        let dist = google.maps.geometry.spherical.computeDistanceBetween(meetupLocation, myLocation) / 1000
+        if (dist > 10) return
+
+        let position = meetup.location.LatLng,
+            date = meetup.date.split(' ')[0],
+            time = meetup.date.split(' ')[1],
+            size = meetup.size,
+            seatHtml = '',
+            members = meetup.registeredMembers
+
+        // add markers
+        members.forEach(member => {
+          seatHtml += `<div class="seat" style="background-image: url('${member.avatar}')"></div>`
+        })
+
+        for (let i = members.length; i < size; i++) {
+          seatHtml += `<div class="seat vacant"></div>`
+        }
+        
+        let html = `
+          <div class="cus_info_container">
+            <div class="image" style="background-image: url('${meetup.imageUrl}')"></div>
+            <div class="infoBox">
+              <h3 class="info_name">${meetup.title}</h3>
+              <div class="info_desc">${meetup.description}</div>
+            </div>
+            <div class="seats">
+              <div class="seat organizer" style="background-image: url('${meetup.organizer.avatar}')"></div>
+            `
+            + seatHtml +
+            `
+            </div>
+            <div class="schedule">
+              <div class="date bar">${date}</div>
+              <div class="time bar">${time}</div>
+              <div class="vacancy">${size} Seats Left</div>
+            </div>
+            <div class="action">
+              <a class="button join" href="/meetup/${meetup.key}">Join</a>
+              <a class="button more" href="/meetup/${meetup.key}">More</a>
+            </div>
+          </div>`
+
+        // add marker
+        let markerOpt = {
+          position: position
+        }
+        map.addMarkerOverlay(markerOpt, html)
+        // bound markers
+        latlngbounds.extend(position);
+        map._map.fitBounds(latlngbounds)
+        map._map.setZoom(14)
+      })
     })
 
   }
@@ -82,6 +126,21 @@ export default {
   margin: 0;
   padding: 0;
   z-index: 1;
+
+  .google-map {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    z-index: 2
+  }
+  .input {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    z-index: 99;
+  }
 }
 
 // overlay style

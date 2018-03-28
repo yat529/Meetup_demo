@@ -131,8 +131,12 @@ export default {
     },
     item () {
       // cache loadedMeetup
-      let key = this.$route.params.id
-      let item = this.$store.state.loadedMeetups.find(meetup => meetup.key === key)
+      let item,
+          key = this.$route.params.id
+
+      if (!key) return
+
+      item = this.$store.state.loadedMeetups.find(meetup => meetup.key === key)
 
       if (!item) {
         // load from firebase

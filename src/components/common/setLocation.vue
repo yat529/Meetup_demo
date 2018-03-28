@@ -6,7 +6,7 @@
       </v-flex>
     </v-layout>
       
-    <div class="map-wrapper" ref="map">
+    <div class="map" ref="map">
     </div>
   </div>
 </template>
@@ -40,7 +40,13 @@ export default {
       let option = {
         zoom: that.zoom
       }
-      let map = new Map(elem, option, input, toDB => {
+      let map = new Map(elem, option).locate(null, false)
+
+      map.autocomplete(input, toDB => {
+        map.locate({
+          position: toDB.LatLng,
+          zoom: 14
+        })
         that.$store.commit('setGoogleMapLocation', toDB)
       })
     })
@@ -49,7 +55,7 @@ export default {
 </script>
 
 <style lang="scss">
-.map-wrapper {
+.map {
   height: 200px;
   background: #eeeeee;
 }

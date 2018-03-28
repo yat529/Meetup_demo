@@ -24,13 +24,11 @@ export default {
   },
   mounted () {
     let elem = this.$refs.location
+    // locate & put marker
     let map = new Map(elem, {
-      zoom: this.zoom
-    })
-
-    map.locate({
-      position: this.center
-    })
+      zoom: this.zoom,
+      center: this.center
+    }).locate(null, true)
   }
 }
 </script>
