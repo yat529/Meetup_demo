@@ -269,72 +269,105 @@ Map.prototype.geolocate = function () {
   return that
 }
 
-Map.prototype.autocomplete = function (input, cb) {
+Map.prototype.autocomplete = function (input, btn = null, cb) {
   if (!input) {
     console.log('Input element missing.')
     return this
   }
+  console.log(input)
 
   let that = this,
       searchBox = new google.maps.places.SearchBox(input)
-
+  
   searchBox.addListener('places_changed', () => {
     let places = searchBox.getPlaces()
     if (!places.length) {
       console.log('Autocomplete fails, no places match')
       return this
     }
-    places.forEach(place => {
-      if (!place.geometry) {
-        console.log('Returned place contains no geometry');
-        return this
-      }
 
-      // save & location
-      that.location = place.geometry.location
+    getLocation(places)
 
-      // location details
-      let address_details = {},
-          addres_formatted = place.formatted_address
-          name = place.name
-          // extract info from place if needed
-          // console.log(place)
-      if (place.address_components) {
-        place.address_components.forEach((component, index) => {
-          switch (component.types[0]) {
-            case 'sublocality_level_1':
-              address_details['city'] = component['short_name']
-              break
-            case 'administrative_area_level_1':
-              address_details['state'] = component['short_name']
-              break
-            case 'country':
-              address_details['country'] = component['short_name']
-              break
-            case 'postal_code':
-              address_details['postal_code'] = component['short_name']
-              break
-          }
-        })
-      }
-
-      // save to toDB
-      that.toDB = {
-        name: name,
-        address: addres_formatted,
-        address_details: address_details,
-        LatLng: {
-          lat: that.location.lat(),
-          lng: that.location.lng()
-        }
-      }
-    })
+    // save & location
+    that.location = getLocation(places)
+    that.toDB = getFormatedPlace(that.location)
 
     // export place data with callback
     if (cb) {
       cb(that.toDB)
     }
   })
+
+  if (btn) {
+    btn.addEventListener('click', (e) => {
+      // e.preventDefault()
+      let geocoder = new google.maps.Geocoder()
+      geocoder.geocode({'address': input.value}, places => {
+        if (!places.length) {
+          console.log('Autocomplete fails, no places match')
+          return this
+        }
+  
+        getLocation(places)
+  
+        // save & location
+        that.location = getLocation(places)
+        that.toDB = getFormatedPlace(that.location)
+  
+        // export place data with callback
+        if (cb) {
+          cb(that.toDB)
+        }
+      });
+    })
+  }
+
+  // helper functions
+  function getLocation (places) {
+    if (!places[0].geometry) {
+      console.log('Returned place contains no geometry');
+      return this
+    }
+    return places[0]
+  }
+
+  function getFormatedPlace (place) {
+    // location details
+    let address_details = {},
+        addres_formatted = place.formatted_address,
+        location = place.geometry.location,
+        name = place.name
+    // extract info from place if needed
+    // console.log(place)
+    if (place.address_components) {
+      place.address_components.forEach((component, index) => {
+        switch (component.types[0]) {
+          case 'sublocality_level_1':
+            address_details['city'] = component['short_name']
+            break
+          case 'administrative_area_level_1':
+            address_details['state'] = component['short_name']
+            break
+          case 'country':
+            address_details['country'] = component['short_name']
+            break
+          case 'postal_code':
+            address_details['postal_code'] = component['short_name']
+            break
+        }
+      })
+    }
+
+    return {
+      name: name,
+      address: addres_formatted,
+      address_details: address_details,
+      LatLng: {
+        lat: location.lat(),
+        lng: location.lng()
+      }
+    }
+  }
 }
 
 Map.prototype.locate = function (option = null, showMarker = true) {

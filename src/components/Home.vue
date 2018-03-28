@@ -1,10 +1,32 @@
 <template>
   <div class="map-wrapper" >
     <div class="google-map" ref="homeMap"></div>
-    <div class="input">
-      <input type="text" class="postal-code" v-model="postal_code" ref="addressInput">
-      {{postal_code}}
-    </div>
+    <!-- input modal -->
+    <v-layout row justify-center>
+      <v-dialog v-model="dialog" persistent max-width="350">
+        <v-card class="px-2 py-2">
+          <v-card-title class="headline">Show Nearby Meetups</v-card-title>
+          <v-card-text>Enter an address or postal code to start</v-card-text>
+          <v-layout row class="px-3 py-3">
+            <v-flex xs12>
+              <v-text-field
+                name="address"
+                label="Enter address"
+                id="addressInput"
+                ref="addressInput"
+                v-model="postal_code"
+              ></v-text-field>
+            </v-flex>
+          </v-layout>
+          <v-card-actions class="px-2">
+            <v-spacer></v-spacer>
+            <!-- <v-btn color="green darken-1" flat @click.native="dialog = false">Disagree</v-btn> -->
+            <v-btn color="primary" flat ref="originAdress">Enter</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </v-layout>
+
   </div>
 </template>
 
@@ -16,7 +38,8 @@ import {Map} from '@/plugins/googleMaps'
 export default {
   data() {
     return {
-      postal_code: ''
+      postal_code: '',
+      dialog: true
     }
   },
   computed: {
@@ -30,36 +53,46 @@ export default {
         meetups = that.$store.state.loadedMeetups,
         elem = that.$refs.homeMap,
         option = {
-          zoom: 13
-        }
+          zoom: 13,
+          disableDefaultUI: true
+        },
+        distance,
+        position = that.$store.state.gmLocation.LatLng
         
-    let input = this.$refs.addressInput,
+    let input = that.$refs.addressInput.$el.querySelector('input'),
+        btn = that.$refs.originAdress.$el,
         map = new Map(elem, option)
 
-    map.autocomplete(input, toDB => {
+    if (position.lat) {
+      that.dialog = false
+      map.locate({
+        position: position,
+        zoom: 14
+      })
+      return filterMarkers(position)
+    }
+
+    // if no place cache in the store, show the modal
+    input.placeholder = '' // overwirte the placeholder from google map api
+    map.autocomplete(input, btn, toDB => {
       map.locate({
         position: toDB.LatLng,
         zoom: 14
       })
       that.$store.commit('setGoogleMapLocation', toDB)
+      that.dialog = false
+      filterMarkers(position)
+    })
 
-      let latlngbounds = new google.maps.LatLngBounds()
-      let myLocation = {
-        lat: that.$store.state.gmLocation.LatLng.lat,
-        lng: that.$store.state.gmLocation.LatLng.lng
-      }
-      myLocation = new google.maps.LatLng(myLocation)
+    // helper function 
+    function filterMarkers (position) {
+      let latlngbounds = new google.maps.LatLngBounds(),
+          myLocation = new google.maps.LatLng(position)
 
       meetups.forEach(meetup => {
-
-        let meetupLocation = {
-          lat: meetup.location.LatLng.lat,
-          lng: meetup.location.LatLng.lng
-        }
-        meetupLocation = new google.maps.LatLng(meetupLocation)
-
-        let dist = google.maps.geometry.spherical.computeDistanceBetween(meetupLocation, myLocation) / 1000
-        if (dist > 10) return
+        let meetupLocation = new google.maps.LatLng(meetup.location.LatLng)
+        distance = google.maps.geometry.spherical.computeDistanceBetween(meetupLocation, myLocation) / 1000
+        if (distance > 10) return
 
         let position = meetup.location.LatLng,
             date = meetup.date.split(' ')[0],
@@ -111,7 +144,7 @@ export default {
         map._map.fitBounds(latlngbounds)
         map._map.setZoom(14)
       })
-    })
+    }
 
   }
 }
