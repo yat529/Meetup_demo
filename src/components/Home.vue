@@ -58,7 +58,7 @@ export default {
   data() {
     return {
       postal_code: '',
-      dialog: true,
+      dialog: false,
       map: {},
       zoom: 13
     }
@@ -79,6 +79,7 @@ export default {
   },
   created () {
     // firebase.database().ref('meetups')
+    this.$store.commit('setLoading', true)
   },
   mounted () {
     let that = this,
@@ -98,13 +99,16 @@ export default {
     that.map = map
 
     if (position.lat) {
-      that.dialog = false
       map.locate({
         position: position,
         zoom: 14
       }, false)
       filterMarkers(position, meetups)
+    } else {
+      that.dialog = true
     }
+
+    that.$store.commit('setLoading', false)
 
     // if no place cache in the store, show the modal
     input.placeholder = '' // overwirte the placeholder from google map api
@@ -156,15 +160,17 @@ export default {
             time = meetup.date.split(' ')[1],
             size = meetup.size,
             seatHtml = '',
-            members = meetup.registeredMembers
+            members = meetup.registeredMembers,
+            seatsLeft = parseInt(size) - parseInt(members.length) - 1,
+            seatsLeftText = seatsLeft !== 0 ? (seatsLeft !== 1 ? seatsLeft + ' seats left' : 'Last seat') : 'Group Full'
 
         // add markers
-        if (members) {
+        if (members && size <= 10) {
           members.forEach(member => {
             seatHtml += `<div class="seat" style="background-image: url('${member.avatar}')"></div>`
           })
 
-          for (let i = members.length; i < size; i++) {
+          for (let i = members.length; i < size - 1; i++) {
             seatHtml += `<div class="seat vacant"></div>`
           }
         }
@@ -185,7 +191,7 @@ export default {
             <div class="schedule">
               <div class="date bar">${date}</div>
               <div class="time bar">${time}</div>
-              <div class="vacancy">${parseInt(size) - parseInt(members.length)} Seats Left</div>
+              <div class="vacancy">${seatsLeftText}</div>
             </div>
             <div class="action">
               <a class="button join" href="/meetup/${meetup.key}">Join</a>
@@ -303,12 +309,20 @@ export default {
 .infoBox {
   padding: 10px 20px;
 
+  .info_name,
+  .info_desc {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+  }
   .info_name {
     margin: 0;
     margin-bottom: 5px;
+    -webkit-line-clamp: 2;
   }
   .info_desc {
     font-size: 13px;
+    -webkit-line-clamp: 3;
   }
 }
 

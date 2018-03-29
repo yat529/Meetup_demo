@@ -3,10 +3,10 @@
 // map class
 function Map (element, option, input = null, cb = null) {
   this._map = null
-  // this.marker = null
   this.location = null
   this.toDB = null
-
+  this.activeOverlays = []
+  
   // cache data
   this.markers = []
 
@@ -404,19 +404,28 @@ Map.prototype.locate = function (option = null, showMarker = true) {
 }
 
 Map.prototype.addMarkerOverlay = function (option, html) {
-  let opt = option || {
-    position: this.location
-  }
-  opt.map = this._map
+  let that = this,
+      opt = option || {
+        position: that.location
+      }
+      opt.map = that._map
 
-  let marker = new google.maps.Marker(opt)
-  let overlay = new Overlay(marker, html)
+  let marker = new google.maps.Marker(opt),
+      overlay = new Overlay(marker, html)
 
-  marker.addListener('click', function() {
+  marker.addListener('click', () => {
+    if (that.activeOverlays.length) {
+      that.activeOverlays.map((activeOverlay, index) => {
+        activeOverlay.close()
+        that.activeOverlays.splice(index, 1)
+      })
+    }
     overlay.open(opt.map)
+    opt.map.panTo(opt.position)
+    that.activeOverlays.push(overlay)
   })
 
-  this.markers.push(marker)
+  that.markers.push(marker)
 }
 
 // Overlay Class
