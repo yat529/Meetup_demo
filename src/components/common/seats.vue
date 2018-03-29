@@ -49,8 +49,8 @@ export default {
     position: relative;
     width: 50px;
     height: 50px;
-    margin-right: 15px;
-    margin-bottom: 25px;
+    // margin-right: 10px;
+    // margin-bottom: 25px;
 
     .avatar {
       position: absolute;

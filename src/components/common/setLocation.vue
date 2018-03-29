@@ -22,9 +22,6 @@ export default {
       zoom: 13
     }
   },
-  methods: {
-    //
-  },
   computed: {
     // 
   },

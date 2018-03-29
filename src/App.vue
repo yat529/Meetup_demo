@@ -39,9 +39,9 @@
 
     <v-content>
       <loader v-if="loading"></loader>
-      <keep-alive>
+      <!-- <keep-alive> -->
         <router-view/>
-      </keep-alive>
+      <!-- </keep-alive> -->
       
     </v-content>
 

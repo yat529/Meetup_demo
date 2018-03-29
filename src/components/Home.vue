@@ -1,6 +1,25 @@
 <template>
   <div class="map-wrapper" >
     <div class="google-map" ref="homeMap"></div>
+    <!-- map controls -->
+    <div id="geolocator">
+      <v-btn dark icon color="primary" @click="geolocate()">
+        <v-icon dark>my_location</v-icon>
+      </v-btn>
+    </div>
+
+    <div id="zoomController">
+      <div class="in">
+        <v-btn dark icon small color="primary" @click="zoom++ && setZoom()">
+          <v-icon dark>keyboard_arrow_up</v-icon>
+        </v-btn>
+      </div>
+      <div class="out">
+        <v-btn dark icon small color="primary" @click="zoom-- && setZoom()">
+          <v-icon dark>keyboard_arrow_down</v-icon>
+        </v-btn>
+      </div>
+    </div>
     <!-- input modal -->
     <v-layout row justify-center>
       <v-dialog v-model="dialog" persistent max-width="350">
@@ -39,11 +58,24 @@ export default {
   data() {
     return {
       postal_code: '',
-      dialog: true
+      dialog: true,
+      map: {},
+      zoom: 13
     }
   },
   computed: {
     //
+  },
+  methods: {
+    setZoom () {
+      this.map._map.setZoom(this.zoom)
+    },
+    geolocate () {
+      this.$store.commit('setLoading', true)
+      this.map.geolocate(() => {
+        this.$store.commit('setLoading', false)
+      })
+    }
   },
   created () {
     // firebase.database().ref('meetups')
@@ -53,7 +85,7 @@ export default {
         meetups = that.$store.state.loadedMeetups,
         elem = that.$refs.homeMap,
         option = {
-          zoom: 13,
+          zoom: this.zoom,
           disableDefaultUI: true
         },
         distance,
@@ -63,13 +95,15 @@ export default {
         btn = that.$refs.originAdress.$el,
         map = new Map(elem, option)
 
+    that.map = map
+
     if (position.lat) {
       that.dialog = false
       map.locate({
         position: position,
         zoom: 14
       }, false)
-      return filterMarkers(position, meetups)
+      filterMarkers(position, meetups)
     }
 
     // if no place cache in the store, show the modal
@@ -90,6 +124,14 @@ export default {
         lat: map._map.getCenter().lat(),
         lng: map._map.getCenter().lng()
       }
+
+      that.$store.commit('setGoogleMapLocation', {
+        name: '',
+        address: '',
+        address_details: {},
+        LatLng: centerLatLng,
+      })
+
       filterMarkers(centerLatLng, meetups, false)
     })
 
@@ -143,7 +185,7 @@ export default {
             <div class="schedule">
               <div class="date bar">${date}</div>
               <div class="time bar">${time}</div>
-              <div class="vacancy">${size} Seats Left</div>
+              <div class="vacancy">${parseInt(size) - parseInt(members.length)} Seats Left</div>
             </div>
             <div class="action">
               <a class="button join" href="/meetup/${meetup.key}">Join</a>
@@ -180,20 +222,49 @@ export default {
   margin: 0;
   padding: 0;
   z-index: 1;
+}
 
-  .google-map {
+.google-map {
+  width: 100%;
+  height: 100%;
+}
+
+#geolocator {
+  position: absolute;
+  top: 25px;
+  right: 25px;
+  width: 50px;
+  height: 50px;
+
+  .btn {
+    position: absolute;
+    margin: 0;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%)
+  }
+}
+
+#zoomController {
+  position: absolute;
+  bottom: 70px;
+  right: 25px;
+  width: 50px;
+  height: 50px;
+
+  .in,
+  .out {
     position: relative;
     width: 100%;
-    height: 100%;
-    z-index: 2
-  }
-  .input {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: #fff;
-    z-index: 99;
+    height: 50px;
+
+    .btn {
+      position: absolute;
+      margin: 0;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%)
+    }
   }
 }
 

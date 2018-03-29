@@ -253,7 +253,7 @@ Map.prototype.init = function (element, option) {
   this._map = new google.maps.Map(element, gmapOption)
 }
 
-Map.prototype.geolocate = function () {
+Map.prototype.geolocate = function (cb) {
   let that = this
 
   if (navigator.geolocation) {
@@ -262,6 +262,11 @@ Map.prototype.geolocate = function () {
         lat: position.coords.latitude,
         lng: position.coords.longitude
       }
+      that.locate({
+        position: that.location
+      }, false)
+
+      cb()
     })
   } else {
     console.log('Browser Geolocation disabled.')

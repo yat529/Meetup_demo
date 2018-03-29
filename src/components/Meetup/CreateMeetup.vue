@@ -2,9 +2,9 @@
   <v-container>
     <v-layout row>
       <v-flex xs12 sm8 offset-sm2>
-        <v-card>
+        <v-card flat>
           <!-- header toolbar -->
-          <v-toolbar color="primary" dark>
+          <v-toolbar color="primary" dark flat>
             <v-toolbar-title>Create a new Meetup</v-toolbar-title>
           </v-toolbar>
           <!-- card body - form -->
@@ -20,16 +20,41 @@
               ></v-text-field>
 
               <!-- location input -->
-              <setLocationMap class="mb-5"></setLocationMap>
+              <setLocationMap class="mb-5" :clear="clearMap"></setLocationMap>
+
+              <v-layout row>
+                <v-flex xs12>
+                  <v-tabs v-model="activeTab" color="primary" dark grow slider-color="yellow">
+                    <v-tab ripple>
+                      Upload local file
+                    </v-tab>
+                    <v-tab-item>
+                      <v-card flat>
+                        <v-card-text>
+                          <!-- image insertion -->
+                          <fileloader class="mb-3"></fileloader>
+                        </v-card-text>
+                      </v-card>
+                    </v-tab-item>
+                    <!-- tab 2 -->
+                    <v-tab ripple>
+                      Use online image
+                    </v-tab>
+                    <v-tab-item>
+                      <v-card flat>
+                        <v-card-text>
+                          <urlpreviewer class="mb-3" :clear="clearUrl"></urlpreviewer>
+                        </v-card-text>
+                      </v-card>
+                    </v-tab-item>
+                  </v-tabs>
+                </v-flex>
+              </v-layout>
               
-              <!-- image insertion -->
-              <fileloader class="mb-3"></fileloader>
+              
 
               <!-- group size/seats -->
               <v-layout row>
-                <!-- <v-flex xs6>
-                  <div class="title">Group Size</div>
-                </v-flex> -->
                 <v-flex xs12>
                   <v-select
                     :items="sizes"
@@ -113,7 +138,7 @@
             </v-card-text>
             <!-- button -->
             <v-flex class="px-4 py-4">
-              <v-btn large flat :disabled="!validForm" class="info" type="submit">CREATE MEETUP</v-btn>
+              <v-btn large flat :disabled="!validForm" class="primary" type="submit">CREATE MEETUP</v-btn>
             </v-flex>
           </form>
         </v-card>
@@ -125,16 +150,19 @@
 <script>
 /* eslint-disable */
 import fileloader from '@/components/common/fileloader'
+import urlpreviewer from '@/components/common/urlpreviewer'
 import setLocationMap from '@/components/common/setLocation'
 
 export default {
   components: {
     fileloader,
+    urlpreviewer,
     setLocationMap
   },
   data () {
     return {
       title: '',
+      activeTab: null,
       description: '',
       date: null,
       dateModal: false,
@@ -142,7 +170,9 @@ export default {
       timeModal: false,
       groupSize: null,
       size: null,
-      sizes: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,'Other']
+      sizes: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,'Other'],
+      clearMap: false,
+      clearUrl: false
     }
   },
   methods: {

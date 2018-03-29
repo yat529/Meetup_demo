@@ -289,11 +289,14 @@ export const store = new Vuex.Store({
       state.gmLocation.address_details = payload.address_details
       state.gmLocation.LatLng.lat = payload.LatLng.lat
       state.gmLocation.LatLng.lng = payload.LatLng.lng
+      console.log('running')
     },
     clearGoogleMapLocation (state) {
       state.gmLocation = null
       state.gmLocation = {
+        name: '',
         address: '',
+        address_details: {},
         LatLng: {
           lat: undefined,
           lng: undefined
@@ -347,6 +350,9 @@ export const store = new Vuex.Store({
         .then(reference => {
           key = reference.key
           file = context.state.flimage
+          imageUrl = context.state.flimageTempUrl || ''
+
+          // check for uploaded file
           if (file) {
             let name = file.name
             fileExt = name.slice(name.lastIndexOf('.'))
@@ -364,6 +370,12 @@ export const store = new Vuex.Store({
               // updated createdMeetups in users entry
               firebase.database().ref('/users').child(meetup.uid).child('createdMeetups').child(key).set(true)
             })
+          } else if (imageUrl) {
+            firebase.database().ref('/meetups').child(key).update({
+              imageExt: null,
+              imageUrl: imageUrl
+            })
+            firebase.database().ref('/users').child(meetup.uid).child('createdMeetups').child(key).set(true)
           } else {
             firebase.database().ref('/users').child(meetup.uid).child('createdMeetups').child(key).set(true)
           }
@@ -394,36 +406,32 @@ export const store = new Vuex.Store({
       console.log(key)
       context.commit('setLoading', true)
       // delete image in storage if exists
-      return new Promise((resolve, reject) => {
-        if (meetup.imageUrl) {
-          let imageRef = key + meetup.imageExt
-          firebase.storage().ref('meetups/images').child(imageRef).delete()
-            .then(() => {
-              console.log('image file deleted')
-            })
-            .catch(error => {
-              console.log(error)
-            })
-        }
-        resolve()
-      })
-      .then(() => {
-        return new Promise((resolve, reject) => {
-          // delete entry in database
-          firebase.database().ref('meetups').child(key).remove()
+      if (meetup.imageUrl && meetup.imageExt) {
+        let imageRef = key + meetup.imageExt
+        firebase.storage().ref('meetups/images').child(imageRef).delete()
           .then(() => {
-            return firebase.database().ref('users').child(uid).child('createdMeetups').child(key).remove()
+            console.log('image file deleted')
           })
-          .then(() => {
-            context.commit('deleteMeetup', meetup)
-            context.commit('deleteUserCreatedMeetup', key)
-            context.commit('setLoading', false)
-            console.log('meetup deleted')
-            resolve()
-          })
-          .catch((error) => {
+          .catch(error => {
             console.log(error)
           })
+      }
+
+      return new Promise((resolve, reject) => {
+        // delete entry in database
+        firebase.database().ref('meetups').child(key).remove()
+        .then(() => {
+          return firebase.database().ref('users').child(uid).child('createdMeetups').child(key).remove()
+        })
+        .then(() => {
+          context.commit('deleteMeetup', meetup)
+          context.commit('deleteUserCreatedMeetup', key)
+          context.commit('setLoading', false)
+          console.log('meetup deleted')
+          resolve()
+        })
+        .catch((error) => {
+          console.log(error)
         })
       })
     },
