@@ -11,6 +11,7 @@ import CreateMeetup from '@/components/Meetup/CreateMeetup'
 import LoadedMeetup from '@/components/Meetup/Meetup'
 import Profile from '@/components/User/Profile'
 import ProfileInit from '@/components/User/init'
+import ProfileUpdate from '@/components/User/update'
 import Signup from '@/components/User/Signup'
 import Signin from '@/components/User/Signin'
 
@@ -59,6 +60,12 @@ export default new Router({
       path: '/profile/init',
       name: 'ProfileInit',
       component: ProfileInit,
+      beforeEnter: routerGuard
+    },
+    {
+      path: '/profile/update',
+      name: 'ProfileUpdate',
+      component: ProfileUpdate,
       beforeEnter: routerGuard
     },
     {

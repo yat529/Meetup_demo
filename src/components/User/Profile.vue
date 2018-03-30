@@ -17,9 +17,9 @@
           </v-card-media>
           <v-card-title primary-title>
             <div>
-              <h3 class="headline mb-0 primary--text">{{ item.title }}</h3>
+              <h3 class="info_name mb-0 primary--text">{{ item.title }}</h3>
               <div class="mb-2">{{ item.date | DateFilter}}</div>
-              <div class="content">{{ item.description }}</div>
+              <div class="info_desc">{{ item.description }}</div>
             </div>
           </v-card-title>
           <CardButton :item="item" v-on:edit="loadMeetup(item)" v-on:more="loadMeetup(item)"></CardButton>
@@ -47,9 +47,9 @@
           </v-card-media>
           <v-card-title primary-title>
             <div>
-              <h3 class="headline mb-0 primary--text">{{ item.title }}</h3>
+              <h3 class="info_name mb-0 primary--text">{{ item.title }}</h3>
               <div class="mb-2">{{ item.date | DateFilter}}</div>
-              <div class="content">{{ item.description }}</div>
+              <div class="info_desc">{{ item.description }}</div>
             </div>
           </v-card-title>
           <CardButton :item="item" v-on:unregister="unregisterMeetup(item)" v-on:more="loadMeetup(item)"></CardButton>
@@ -118,10 +118,27 @@ export default {
 </script>
 <style lang="scss">
 .meetups {
-  .content {
-    height: 65px;
+
+  .info_name,
+  .info_desc {
     overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
   }
+
+  .info_name {
+    height: 50px;
+    font-size: 1.2rem;
+    -webkit-line-clamp: 2;
+  }
+
+  .info_desc {
+    height: 60px;
+    font-size: 1rem;
+    line-height: 20px;
+    -webkit-line-clamp: 3;
+  } 
+
   .avatar {
     width: 65px;
     height: 65px;
