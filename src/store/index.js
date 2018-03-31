@@ -1,19 +1,23 @@
+/* eslint-disable */ 
 import Vue from 'vue'
 import Vuex from 'vuex'
 import * as firebase from 'firebase'
 
+// import modules
+import user from './modules/user.js'
+
 Vue.use(Vuex)
 
 export const store = new Vuex.Store({
+  modules: {
+    userModule: user
+  },
   state: {
     // local cache data from firebase
     loadedMeetups: [],
     createdMeetups: [],
     registeredMeetups: [],
     loadedMeetup: null,
-    // local cache user
-    user: null, // firebase user obj
-    user_basic: null, // basic info catch
     // state
     loading: false,
     error: null,
@@ -49,11 +53,11 @@ export const store = new Vuex.Store({
       // when not login
       let menuItems = [
         { icon: 'supervisor_account', title: 'View Meetups', link: '/meetups' },
-        { icon: 'face', title: 'Sign up', link: '/signup' },
+        // { icon: 'face', title: 'Sign up', link: '/signup' },
         { icon: 'lock_open', title: 'Sign in', link: '/signin' }
       ]
       // if login
-      if (state.user) {
+      if (state.userModule.user) {
         menuItems = [
           { icon: 'supervisor_account', title: 'View Meetups', link: '/meetups' },
           { icon: 'room', title: 'Create Meetup', link: '/addmeetup' },
@@ -177,22 +181,7 @@ export const store = new Vuex.Store({
         }
       })
     },
-    // local user cache
-    signUserIn (state, user) {
-      // user is firebase user obj
-      state.user = user
-      console.log('user logged in')
-    },
-    signUserOut (state) {
-      state.user = null
-      state.user_basic = null
-      state.loadedMeetups.forEach(meetup => {
-        if (meetup.registered) {
-          meetup.registered = null
-        }
-      })
-      console.log('user signed out')
-    },
+    
     addUserCreatedMeetup (state, payload) {
       // info add to user_basic obj
       if (!state.user_basic.createdMeetups) {
@@ -265,13 +254,7 @@ export const store = new Vuex.Store({
         })
       }
     },
-    // update user_basic obj
-    updateUserInfo (state, payload) {
-      Object.keys(payload).forEach(key => {
-        state.user_basic[key] = payload[key]
-      })
-      console.log('user info local updated')
-    },
+    
     // local fileloader cache
     setFileLoaderCache (state, payload) {
       state.flimage = payload.file
@@ -520,152 +503,16 @@ export const store = new Vuex.Store({
         })
       })
     },
-    onAccSignUp (context, user) {
-      context.commit('clearError')
-      context.commit('clearAlert')
-      context.commit('setLoading', true)
-      return new Promise((resolve, reject) => {
-        firebase.auth().createUserWithEmailAndPassword(user.email, user.password)
-        .then(user => {
-          return firebase.database().ref('users').child(user.uid).set({
-            email: user.email
-          })
-        })
-        .then(() => {
-          context.commit('showSuccessLoginAlert', true)
-          setTimeout(() => {
-            // setup user_basic obj
-            context.state.user_basic = {
-              email: user.email
-            }
-            context.commit('setLoading', false)
-            resolve()
-          }, 1000)
-        })
-        .catch(error => {
-          console.log(error)
-          context.commit('setError', error)
-          context.commit('setLoading', false)
-          context.commit('showErrorAlet', true)
-        })
-      })
-    },
-    onUserLogIn (context, user) {
-      context.commit('clearError')
-      context.commit('clearAlert')
-      context.commit('setLoading', true)
-
-      return new Promise((resolve, reject) => {
-        firebase.auth().signInWithEmailAndPassword(user.email, user.password)
-        .then(user => {
-          context.commit('setLoading', false)
-          context.commit('showSuccessLoginAlert', true)
-          // no needed, already called in initPage
-          // context.commit('signUserIn', user)
-          // context.dispatch('loadUserMeetupsOnce')
-          resolve()
-        })
-        .catch(error => {
-          console.log(error)
-          context.commit('setError', error)
-          context.commit('setLoading', false)
-          context.commit('showErrorAlet', true)
-        })
-      })
-    },
-    onUserSignOut (context, router) {
-      context.commit('clearError')
-      context.commit('clearAlert')
-      context.commit('setLoading', true)
-
-      return new Promise((resolve, reject) => {
-        firebase.auth().signOut()
-          .then(() => {
-            context.commit('signUserOut')
-            context.commit('clearLoadedMeetUp')
-            context.commit('clearUserMeetupsCache')
-            context.commit('setLoading', false)
-            context.commit('showSuccessLogoutAlert', true)
-            resolve()
-          })
-          .catch(error => {
-            console.log(error)
-            context.commit('setError', error)
-            context.commit('showErrorAlet', true)
-            reject(error)
-          })
-      })
-    },
-    // user profile update
-    updateUserInfo (context, userInfo) {
-      let uid = context.state.user.uid
-      let avatarUrl
-
-      context.commit('setLoading', true)
-
-      return new Promise((resolve, reject) => {
-        // parse the file ext
-        if (context.state.flimage) {
-          let file = context.state.flimage
-          let name = file.name
-          let fileExt = name.slice(name.lastIndexOf('.'))
-
-          firebase.storage().ref('users').child(uid).child('avatar/' + uid + fileExt).put(file)
-          .then(snapshot => {
-            avatarUrl = snapshot.metadata.downloadURLs[0]
-            return firebase.database().ref('users').child(uid).update({
-              avatar: avatarUrl
-            })
-          })
-          .then(() => {
-            context.commit('updateUserInfo', {
-              avatar: avatarUrl
-            })
-            context.commit('clearFileLoaderCache')
-            console.log('Avatar Uploaded')
-          })
-          .catch(error => console.log(error))
-        }
-
-        firebase.database().ref('users').child(uid).update(userInfo)
-        .then(() => {
-          context.commit('updateUserInfo', userInfo)
-          context.commit('setLoading', false)
-          resolve()
-        })
-        .catch(error => {
-          console.log(error)
-        })
-      })
-    },
-    // sync user info to user_basic
-    // note: user is obj provided by firebase, user_basic is just a self-created object with basic user info
-    syncUserInfo (context, key) {
-      return new Promise((resolve, reject) => {
-        firebase.database().ref('users').child(key).once('value')
-          .then(ref => {
-            context.state.user_basic = ref.val()
-            resolve()
-          })
-          .catch(error => {
-            console.log(error)
-          })
-      })
-    },
+    
     // when meetups page load
     initPage (context) {
       firebase.auth().onAuthStateChanged(user => {
         if (user) {
-          context.commit('signUserIn', user)
-
-          if (!context.state.user_basic) {
-            context.dispatch('syncUserInfo', user.uid)
-          }
-
-          // if (!context.state.registeredMeetups.length && !context.state.createdMeetups.length) {
-          //   context.dispatch('loadUserMeetupsOnce')
-          // }
+          context.commit('signInUser', user)
+        } else {
+          context.commit('signOutUser')
         }
+
         if (!context.state.loadedMeetups.length) {
           context.commit('setLoading', true)
           context.dispatch('loadMeetupsOnce')

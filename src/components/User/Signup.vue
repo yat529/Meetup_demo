@@ -1,21 +1,29 @@
 <template>
-  <v-container>
-    <v-layout row>
-      <v-flex xs12 sm6 offset-sm3>
-        <v-card>
-          <v-alert type="success" :value="showSuccessAlert" v-if="showSuccessAlert">
-              Login Successful
-          </v-alert>
-          <v-alert type="error" :value="showErrorAlet" v-if="showErrorAlet">
-              {{ errorMsg }}
-          </v-alert>
-          <v-toolbar class="primary mb-3" dark>
+  <v-container fill-height>
+    <v-layout align-center justify-center>
+      <v-flex xs12 sm6>
+        <v-alert type="success" :value="showSuccessAlert" v-if="showSuccessAlert">
+            Login Successful
+        </v-alert>
+        <v-alert type="error" :value="showErrorAlet" v-if="showErrorAlet">
+            {{ errorMsg }}
+        </v-alert>
+        <v-card flat>
+          <!-- <v-toolbar class="primary mb-3" dark flat>
             <v-toolbar-side-icon>
               <v-icon>person_add</v-icon>
             </v-toolbar-side-icon>
             <v-toolbar-title>Join Meetup</v-toolbar-title>
+          </v-toolbar> -->
+          <v-toolbar class="white" light flat>
+            <div class="deco-bar primary"></div>
+            <v-toolbar-side-icon>
+              <v-icon class="primary--text">person_add</v-icon>
+            </v-toolbar-side-icon>
+            <v-toolbar-title class="primary--text">Join Meetup</v-toolbar-title>
           </v-toolbar>
-          <v-form class="pb-4" ref="accSignupForm" @submit.prevent="onSignup">
+          <v-divider class="mb-4"></v-divider>
+          <v-form class="mb-4" ref="accSignupForm" @submit.prevent="createUser">
             <v-layout row>
               <v-flex xs10 offset-xs1>
                 <v-card-text class="px-4 py-4">
@@ -50,10 +58,19 @@
                     v-if="checkPswLength"
                   ></v-text-field>
                 </v-card-text>
-                <v-btn large flat dark class="info" type="submit">CREATE ACCOUNT</v-btn>
+                <v-layout justify-center>
+                  <v-btn large flat dark class="primary" type="submit">CREATE ACCOUNT</v-btn>
+                </v-layout>
               </v-flex>
-            </v-layout>          
+            </v-layout>
           </v-form>
+          <v-divider class="mb-1"></v-divider>
+          <v-container py-0>
+            <v-layout class="pb-1" align-center>
+              <v-spacer></v-spacer>
+              <v-btn flat small class="primary--text" to="/signin">Already signed up?</v-btn>
+            </v-layout> 
+          </v-container>
         </v-card>     
       </v-flex>
     </v-layout>
@@ -109,14 +126,19 @@ export default {
     }
   },
   methods: {
-    onSignup () {
+    createUser () {
       if( this.$refs.accSignupForm.validate() ) {
         let user = {
           email: this.email,
           password: this.password
         }
-        this.$store.dispatch('onAccSignUp', user).then(() => {
-          console.log('finally got here')
+        this.$store.dispatch('createUser', user)
+        .then(user => {
+          console.log(user)
+          this.$store.dispatch('createDBUserEntry', user)
+        })
+        .then(() => {
+          console.log('User created')
           this.$router.push({
             path: '/profile/init'
           })
@@ -127,5 +149,13 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
+.deco-bar {
+  position: relative;
+  left: 0;
+  top: 0;
+  width: 7px;
+  height: 100%;
+  margin: 0 !important;
+}
 </style>

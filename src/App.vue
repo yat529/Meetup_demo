@@ -11,7 +11,7 @@
         </v-list-tile>
         <!-- end -->
         <!-- Sign out -->
-        <v-list-tile @click="signOut">
+        <v-list-tile v-if="signedIn" @click="signOutUser">
           <v-list-tile-action>
             <v-icon>face</v-icon>
           </v-list-tile-action>
@@ -31,7 +31,7 @@
         <v-icon left>{{ item.icon }}</v-icon>
         {{ item.title }}
       </v-btn>
-      <v-btn class="hidden-sm-and-down" v-if="signedIn" flat @click="signOut">
+      <v-btn class="hidden-sm-and-down" v-if="signedIn" flat @click="signOutUser">
         <v-icon left>face</v-icon>
         Sign out
       </v-btn>
@@ -64,8 +64,8 @@ export default {
     }
   },
   methods: {
-    signOut () {
-      this.$store.dispatch('onUserSignOut')
+    signOutUser () {
+      this.$store.dispatch('signOutUser')
         .then(() => {
           this.$router.push('/signin')
         })
@@ -76,7 +76,7 @@ export default {
       return this.$store.getters.menuItems
     },
     signedIn () {
-      return this.$store.state.user !== null
+      return this.$store.state.userModule.user !== null
     },
     loading () {
       return this.$store.state.loading
