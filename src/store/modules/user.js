@@ -104,12 +104,8 @@ const Users = {
     signInUser (context, user) {
       return new Promise((resolve, reject) => {
         firebase.auth().signInWithEmailAndPassword(user.email, user.password)
-        .then(user => {
-          resolve(user)
-        })
-        .catch(error => {
-          console.log(error)
-        })
+        .then(user => resolve(user))
+        .catch(error => console.log(error))
       })
     },
 
@@ -118,28 +114,46 @@ const Users = {
     signOutUser (context) {
       return new Promise((resolve, reject) => {
         firebase.auth().signOut()
-        .then(() => {
-          resolve()      
-        })
-        .catch(error => {
-          console.log(error)
-        })
+        .then(() => resolve())
+        .catch(error => console.log(error))
       })
     },
 
-    // Init user profile
-    // Once create user with email and password, the profile init page will display
-    // This function will be called when user profile object is complete
-    // displayName, photoURL will be updated
+    // Update user profile
+    // Used to update the users database
     // NOTE: user must be logged in
-    
-    // initUserProfile (context, profile) {
-    //   if (!context.state.user) return
-    //   context.state.user.updateProfile({
-    //     displayName: profile.displayName || '',
-    //     photoURL: profile.photoURL || ''
-    //   })
-    // },
+    updateUserProfile (context, profile) {
+      if (!context.state.user) console.log('user not login')
+      let uid = context.state.user.uid
+      return new Promise((resolve, reject) => {
+        firebase.database().ref('users').child(uid).update(profile)
+        .then(() => resolve())
+        .catch(error => console.log(error))
+      })
+    },
+
+    // Upload user photot avatar
+    // Will upload the photo to storage first, once get back the download url, then update users database with this link
+    // the property name must be 'photoURL'
+    // NOTE: user must login
+    uploadUserAvatar (context) {
+      if (!context.state.user) console.log('user not login')
+      let uid = context.state.user.uid,
+          file = context.rootState.flimage,
+          name = file.name,
+          fileExt = name.slice(name.lastIndexOf('.'))
+      return new Promise((resolve, reject) => {
+        firebase.storage().ref('users').child(uid).child('avatar/' + uid + fileExt).put(file)
+        .then(snapshot => {
+          let avatarUrl = snapshot.metadata.downloadURLs[0]
+          return firebase.database().ref('users').child(uid).update({
+            photoURL: avatarUrl
+          })
+        })
+        .then(() => resolve())
+        .catch(error => console.log(error))
+      })
+    }
 
     // updateUserProfile (context, profile) {
     //   if (!context.state.user) return

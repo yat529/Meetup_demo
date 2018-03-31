@@ -3,39 +3,47 @@
 	<h3 class="title mt-4 mb-4 primary--text text-xs-center">Complete Your Profile</h3>
 	<v-layout row>
 		<v-flex xs12 sm8 offset-sm2>
-			<v-stepper v-model="step">
-				<v-stepper-header>
+			<v-stepper v-model="step" class="no-boxshadow">
+				<v-stepper-header class="no-boxshadow border-bottom">
+					<v-divider></v-divider>
 					<v-stepper-step step="1" :complete="step > 1" editable>Personal Information</v-stepper-step>
 					<v-divider></v-divider>
-					<v-stepper-step step="2" :complete="step > 2" editable>Account Avatar</v-stepper-step>
+					<v-stepper-step step="2" :complete="step > 2" editable>Photo Avatar</v-stepper-step>
 					<v-divider></v-divider>
-					<v-stepper-step step="3" editable>Phone Number</v-stepper-step>
 				</v-stepper-header>
 				<!-- stepper content -->
 				<v-stepper-items>
 					<!-- step 1 -->
 					<v-stepper-content step="1">
-						<v-card flat color="" class="mb-5" height="auto">
+						<v-card flat color="" class="mb-3" height="auto">
 							<h3 class="primary--text Regular mt-3 mb-4">Upload Your Identity</h3>
+							<v-layout row style="height: 100px" align-content-center>
+								<v-flex xs3>
+									<v-subheader class="primary--text">Name</v-subheader>
+								</v-flex>
+								<v-flex xs9 d-flex>
+									<v-flex xs6 px-2>
+										<v-text-field name="fname" label="First Name" id="fname" v-model="fname" required :rules="[rules.required]"
+										></v-text-field>
+									</v-flex>
+									<v-flex xs6 px-2>
+										<v-text-field name="lname" label="Last Name" id="lname" v-model="lname" required :rules="[rules.required]"
+										></v-text-field>
+									</v-flex>
+									{{fullname}}
+								</v-flex>
+							</v-layout>
+
 							<v-layout row style="height: 100px" align-content-center>
 								<v-flex xs3>
 									<v-subheader class="primary--text">Nickname</v-subheader>
 								</v-flex>
-								<v-flex xs9>
-									<v-text-field name="nickname" label="Enter your nickname" id="nickname" v-model="nickname"></v-text-field>
+								<v-flex xs9 d-flex>
+									<v-text-field name="nickname" label="Nickname" id="nickname" v-model="nickname" :rules="[rules.required]"
+									hint="Nickname will be displayed publicly" persistent-hint required
+									></v-text-field>
 								</v-flex>
-							</v-layout>
-
-							<v-layout row style="height: 100px" align-content-center class="mb-3">
-								<v-flex xs3>
-									<v-subheader class="primary--text">Birthday</v-subheader>
-								</v-flex>
-								<v-flex xs9>
-									<v-menu ref="menu" lazy :close-on-content-click="false" v-model="menu" transition="scale-transition" offset-y full-width :nudge-right="40" min-width="290px">
-										<v-text-field slot="activator" label="Birthday date" v-model="birthday" prepend-icon="event" readonly></v-text-field>
-										<v-date-picker ref="picker" v-model="birthday" @change="save" min="1950-01-01" :max="new Date().toISOString().substr(0, 10)"></v-date-picker>
-									</v-menu>
-								</v-flex>
+								{{nickname}}
 							</v-layout>
 
 							<v-layout row style="height: 100px" align-content-center class="mb-3">
@@ -48,6 +56,7 @@
 										<v-radio label="Female" value="female"></v-radio>
 									</v-radio-group>
 								</v-flex>
+								{{sex}}
 							</v-layout>
 						</v-card>
 						<v-btn color="primary" @click.native="step = 2">Continue</v-btn>
@@ -55,35 +64,23 @@
 					<!-- step 2 -->
 					<v-stepper-content step="2">
 						<v-card flat color="" class="mb-5" height="auto">
-							<h3 class="primary--text Regular mt-3 mb-4">Upload Your Avatar</h3>
+							<h3 class="primary--text Regular mt-3 mb-4" v-if="!hasAvatarUrl">Upload Your Avatar</h3>
+							<h3 class="primary--text Regular mt-3 mb-4" v-if="hasAvatarUrl">Use your current photo avatar or Upload a new one</h3>
 							<div class="avatar-wrapper mb-4">
 								<div class="avatar-preview" :style="avatarUrl"></div>	
 							</div>
 							<!-- content here -->
 							<fileloader></fileloader>
 						</v-card>
-						<v-btn color="primary" @click.native="step = 3">Continue</v-btn>
+						<v-layout>
+							<v-btn color="primary" @click="updateUserInfo" v-if="hasAvatarUrl">Submit</v-btn>
+							<v-btn flat @click="dialog = true" v-if="!hasAvatarUrl">Skip and Submit</v-btn>
+							<v-spacer></v-spacer>
+							<v-btn color="primary" @click.native="step = 1">Go Back</v-btn>
+						</v-layout>
 					</v-stepper-content>
 					<!-- step 3 -->
 					<v-stepper-content step="3">
-						<v-card flat color="" class="mb-5" height="auto">
-							<h3 class="primary--text Regular mt-3 mb-4">Add Your Phone Number</h3>
-							<!-- content here -->
-							<v-layout row style="height: 100px" align-content-center class="mb-3">
-								<v-flex xs3>
-									<v-subheader class="primary--text">Phone Number</v-subheader>
-								</v-flex>
-								<v-flex xs9>
-									<v-text-field name="phone" label="Enter your Phone Number" id="phone" v-model="phone" mask="phone"></v-text-field>
-									{{phone}}
-								</v-flex>
-							</v-layout>
-						</v-card>
-						<v-btn color="primary" @click="updateUserInfo">Continue</v-btn>
-						<v-btn flat @click="dialog = true">Skip</v-btn>
-					</v-stepper-content>
-					<!-- step 4 -->
-					<v-stepper-content step="4">
 						<v-card flat color="" class="mb-5" height="200px">
 							<!-- content here -->
 							<v-layout row class="mb-3" justify-center align-center fill-height>
@@ -102,10 +99,9 @@
 	<!-- Confirm Model -->
 	<v-layout row justify-center>
     <v-dialog v-model="dialog" persistent max-width="290">
-      <!-- <v-btn color="primary" dark slot="activator">Open Dialog</v-btn> -->
       <v-card>
-        <v-card-title class="headline">Not adding phone number?</v-card-title>
-        <v-card-text>Phone number is not required by us, however, your group member can notify your any update on your meetup via phone number. PROCEED without adding it, or GO BACK.</v-card-text>
+        <v-card-title class="headline">Not adding a photo avatar?</v-card-title>
+        <v-card-text>Photo avatar is not required. However, it will give you a greater chance of being welcomed by the group organizer. PROCEED without adding it, or GO BACK.</v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="orange" flat @click="dialog = false">GO BACK</v-btn>
@@ -129,57 +125,82 @@ export default {
   data () {
 		return {
 			step: 0,
-			// user info
+			user: {},
+			fname: '',
+			lname: '',
 			nickname: '',
 			sex: 'male',
-			birthday: null,
 			phone: '',
-			// avatar: null
-			menu: false,
-			dialog: false
+			dialog: false,
+			rules: {
+				required: (value) => !!value || 'Required.'
+			}
 		}
 	},
 	methods: {
-		save (birthday) {
-      this.$refs.menu.save(birthday)
-		},
 		updateUserInfo () {
 			if (!this.infoConfirmed) {
 				this.step = 1
 				return
 			}
-			let user = {
+			let userProfile = {
+				fullname: this.fullname,
 				nickname: this.nickname,
 				sex: this.sex,
-				birthday: this.birthday,
-				phone: this.phone,
+				phone: this.phone
 			}
-			this.$store.dispatch('updateUserInfo', user)
+			// upload avatar photo
+			if (this.$store.state.flimage && this.$store.state.flimageTempUrl) {
+				this.$store.dispatch('uploadUserAvatar')
+			}
+
+			this.$store.dispatch('updateUserProfile', userProfile)
 			.then(() => {
 				if (this.dialog) this.dialog = false
-				this.step = 4
+				this.step = 3
 			})
 		},
 		redirectToProfile () {
-			this.$router.push({
-				path: '/profile'
-			})
+			this.$router.push('/profile')
 		}
 	},
 	computed: {
+
+		fullname: {
+			get () {
+				return this.fname + ' ' + this.lname
+			},
+			set (displayName) {
+				let names = displayName.split(' ')
+				this.fname = names[0]
+				this.lname = names[names.length - 1]
+			}
+		},
+
 		avatarUrl () {
-			let url = this.$store.state.flimageTempUrl
+			let url = this.$store.state.flimageTempUrl || this.$store.state.userModule.user.photoURL
 			return `background-image: url("${ url }")`
 		},
+
+		hasAvatarUrl () {
+			if (this.$store.state.flimageTempUrl || this.$store.state.userModule.user.photoURL) {
+				return true
+			}
+			return false
+		},
+
 		infoConfirmed () {
-			return this.nickname && this.birthday
+			return this.nickname && this.fname && this.lname
 		}
 	},
-	watch: {
-    menu (val) {
-      val && this.$nextTick(() => (this.$refs.picker.activePicker = 'YEAR'))
-    }
-  },
+
+	created () {
+		// used to retrive display name from provifer
+		this.user = this.$store.state.userModule.user || {}
+		if (this.user.displayName && this.user.displayName.length > 0) {
+			this.fullname = this.user.displayName
+		}
+	}
 }
 </script>
 
@@ -205,5 +226,12 @@ export default {
 		background-size: cover;
 		background-repeat: no-repeat;
 	}
+}
+
+.no-boxshadow {
+	box-shadow: none !important;
+}
+.border-bottom {
+	border-bottom: 1px solid #eeeeee !important;
 }
 </style>
