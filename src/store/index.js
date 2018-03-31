@@ -508,7 +508,10 @@ export const store = new Vuex.Store({
     initPage (context) {
       firebase.auth().onAuthStateChanged(user => {
         if (user) {
-          context.commit('signInUser', user)
+          context.dispatch('fetchUser', user)
+          .then(user_ref => {
+            context.commit('signInUser', {user, user_ref})
+          })
         } else {
           context.commit('signOutUser')
         }

@@ -5,18 +5,21 @@ const Users = {
   state: {
     // local cache user
     user: null, // firebase user obj
+    user_ref: null // ref obj to firebase users database
     // user_basic: null, // basic info catch
   },
   getters: {},
   mutations: {
     // local user cache
-    signInUser (state, user) {
+    signInUser (state, {user, user_ref}) {
       // user is firebase user obj
       state.user = user
+      state.user_ref = user_ref
       console.log('user logged in')
     },
     signOutUser (state) {
       state.user = null
+      state.user_ref = null
       console.log('user signed out')
     }
   },
@@ -24,7 +27,7 @@ const Users = {
     // Create user account
     // Sign up account ONLY happens when user choose to signup with email and password
     // once finish, return new promise with resolved user object
-    createUser (context, user) {
+    createUser (context) {
       return new Promise((resolve, reject) => {
         firebase.auth().createUserWithEmailAndPassword(user.email, user.password)
         .then(user => resolve(user))
@@ -100,7 +103,7 @@ const Users = {
     },
 
     // Sign in using email and password with firebase
-    // user snapshot is returned by promise
+    // authenticated user snapshot is returned by promise
     signInUser (context, user) {
       return new Promise((resolve, reject) => {
         firebase.auth().signInWithEmailAndPassword(user.email, user.password)
@@ -153,58 +156,19 @@ const Users = {
         .then(() => resolve())
         .catch(error => console.log(error))
       })
+    },
+
+    // Fetch the user database entry
+    // Return a promise with a user db snapshot
+    fetchUser (context, user) {
+      let uid = user.uid
+      return new Promise((resolve, reject) => {
+        firebase.database().ref('users').child(uid).once('value')
+        // export the value of the snapshot
+        .then(user_snap => resolve(user_snap.val()))
+        .catch(error => console.log(error))
+      })
     }
-
-    // updateUserProfile (context, profile) {
-    //   if (!context.state.user) return
-    //   context.state.user.updateProfile({
-    //     displayName: profile.displayName || '',
-    //     photoURL: profile.photoURL || ''
-    //   })
-    // },
-
-    // // user profile update
-    // updateUserInfo (context, userInfo) {
-    //   let uid = context.state.user.uid
-    //   let avatarUrl
-
-    //   context.commit('setLoading', true)
-
-    //   return new Promise((resolve, reject) => {
-    //     // parse the file ext
-    //     if (context.state.flimage) {
-    //       let file = context.state.flimage
-    //       let name = file.name
-    //       let fileExt = name.slice(name.lastIndexOf('.'))
-
-    //       firebase.storage().ref('users').child(uid).child('avatar/' + uid + fileExt).put(file)
-    //       .then(snapshot => {
-    //         avatarUrl = snapshot.metadata.downloadURLs[0]
-    //         return firebase.database().ref('users').child(uid).update({
-    //           avatar: avatarUrl
-    //         })
-    //       })
-    //       .then(() => {
-    //         context.commit('updateUserInfo', {
-    //           avatar: avatarUrl
-    //         })
-    //         context.commit('clearFileLoaderCache')
-    //         console.log('Avatar Uploaded')
-    //       })
-    //       .catch(error => console.log(error))
-    //     }
-
-    //     firebase.database().ref('users').child(uid).update(userInfo)
-    //     .then(() => {
-    //       context.commit('updateUserInfo', userInfo)
-    //       context.commit('setLoading', false)
-    //       resolve()
-    //     })
-    //     .catch(error => {
-    //       console.log(error)
-    //     })
-    //   })
-    // },
 
   }
 }

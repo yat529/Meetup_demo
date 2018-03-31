@@ -51,39 +51,6 @@
         <v-layout>
           <v-layout row>
             <v-flex xs4>
-              <v-subheader>Phone</v-subheader>
-            </v-flex>
-            <v-flex xs8>
-              <v-text-field
-                name="phone"
-                label="Phone Number"
-                :value="user.phone || ''"
-                id="phone"
-                mask="phone"
-                :disabled="user.phone.length != 0"
-              ></v-text-field>
-            </v-flex>
-          </v-layout>
-        </v-layout>
-        <v-layout>
-          <v-layout row>
-            <v-flex xs4>
-              <v-subheader>Birthday</v-subheader>
-            </v-flex>
-            <v-flex xs8>
-              <v-text-field
-                name="birthday"
-                label="Birthday"
-                :value="user.birthday"
-                id="birthday"
-                disabled
-              ></v-text-field>
-            </v-flex>
-          </v-layout>
-        </v-layout>
-        <v-layout>
-          <v-layout row>
-            <v-flex xs4>
               <v-subheader>Sex</v-subheader>
             </v-flex>
             <v-flex xs8>
@@ -114,16 +81,15 @@ export default {
   },
   computed: {
     user () {
-      return this.$store.state.user_basic
+      return this.$store.state.userModule.user_ref
     },
     getUserAvatar () {
       if (this.user)
-      return `background-image: url("${ this.user.avatar }")`
+      return `background-image: url("${ this.user.photoURL }")`
     }
   },
   mounted () {
-    if (this.user)
-    console.log(this.user.phone.length)
+    // 
   }
 }
 </script>

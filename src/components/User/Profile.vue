@@ -6,6 +6,14 @@
     <v-layout justify-center>
       <div class="avatar mb-3" :style="getUserAvatar"></div>
     </v-layout>
+    <h3 class="title mt-3 mb-3 primary--text">My Dashboard</h3>
+    <v-layout row wrap class="mb-5">
+      <v-layout class="placeholder" justify-center align-center>
+        <v-flex xs4 px-3></v-flex>
+        <v-flex xs4 px-3></v-flex>
+        <v-flex xs4 px-3></v-flex>
+      </v-layout>
+    </v-layout>
     <h3 class="title mt-3 mb-3 primary--text">My Meetups</h3>
     <v-layout row wrap class="mb-5">
       <v-layout class="placeholder" justify-center align-center v-if="!createdMeetups.length">
@@ -76,6 +84,11 @@ export default {
   components: {
     CardButton
   },
+  data () {
+    return {
+      // 
+    }
+  },
   methods: {
     deleteMeetup (item) {
       this.$store.dispatch('deleteMeetup', item)
@@ -102,10 +115,10 @@ export default {
       return this.$store.state.registeredMeetups
     },
     user () {
-      return this.$store.state.user_basic
+      return this.$store.state.userModule.user_ref
     },
     getUserAvatar () {
-      return `background-image: url("${ this.user.avatar }")`
+      return `background-image: url("${ this.user.photoURL }")`
     }
   },
   created () {
@@ -113,6 +126,8 @@ export default {
     if (!context.state.registeredMeetups.length && !context.state.createdMeetups.length) {
       context.dispatch('loadUserMeetupsOnce')
     }
+
+    
   }
 }
 </script>
