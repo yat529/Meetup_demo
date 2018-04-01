@@ -86,7 +86,8 @@ export default {
   },
   data () {
     return {
-      // 
+      createdMeetups: {},
+      registeredMeetups: {}
     }
   },
   methods: {
@@ -108,12 +109,6 @@ export default {
     }
   },
   computed: {
-    createdMeetups () {
-      return this.$store.state.createdMeetups
-    },
-    registeredMeetups () {
-      return this.$store.state.registeredMeetups
-    },
     user () {
       return this.$store.state.userModule.user_ref
     },
@@ -122,12 +117,11 @@ export default {
     }
   },
   created () {
-    let context = this.$store
-    if (!context.state.registeredMeetups.length && !context.state.createdMeetups.length) {
-      context.dispatch('loadUserMeetupsOnce')
-    }
-
-    
+    this.$store.dispatch('fetchUserMeetups')
+    .then(userMeetups => {
+      this.createdMeetups = userMeetups.created
+      this.registeredMeetups = userMeetups.registered
+    })
   }
 }
 </script>

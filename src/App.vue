@@ -83,7 +83,7 @@ export default {
     }
   },
   created () {
-    this.$store.dispatch('initPage')
+    this.$store.dispatch('watchUser')
   }
 }
 </script>

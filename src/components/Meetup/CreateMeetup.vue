@@ -10,7 +10,7 @@
           <!-- card body - form -->
           <form @submit.prevent="createMeetup">
             <v-card-text class="px-4 py-4">
-              <span class="title">Meetup Info</span>
+              <h2 class="primary--text">Meetup Info</h2>
               <!-- title input -->
               <v-text-field
                 label="Title"
@@ -59,15 +59,18 @@
                   <v-select
                     :items="sizes"
                     v-model="groupSize"
-                    v-if="!customSize"
+                    v-if="!isCustomSize"
                     label="Group Size"
                     required
                   ></v-select>
                   <v-text-field
                     label="Group Size"
-                    v-model="size"
-                    v-if="customSize"
-                    mask="###"
+                    v-model="customGroupSize"
+                    v-if="isCustomSize"
+                    :rules="[rules.numberOnly]"
+                    hint="Must be a number"
+                    persistent-hint
+                    error
                     required
                   ></v-text-field>
                 </v-flex>
@@ -168,9 +171,12 @@ export default {
       dateModal: false,
       time: null,
       timeModal: false,
-      groupSize: null,
-      size: null,
       sizes: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,'Other'],
+      groupSize: null,
+      customGroupSize: null,
+      rules: {
+        numberOnly: (value) => typeof value === 'number' || 'Must be a number'
+      },
       clearMap: false,
       clearUrl: false
     }
@@ -180,39 +186,44 @@ export default {
       const meetup = {
         title: this.title,
         location: this.location,
-        size: this.customSize ? (typeof this.size === 'number' ? this.size : parseInt(this.size)) : this.groupSize,
+        size: this.isCustomSize ? this.customGroupSize : this.groupSize,
         description: this.description,
-        date: this.formattedDate
+        date: this.date,
+        time: this.time,
+        uid: this.$store.state.userModule.user_ref.uid,
+        organizer: {
+          nickname: this.$store.state.userModule.user_ref.nickname,
+          photoURL: this.$store.state.userModule.user_ref.photoURL,
+          sex: this.$store.state.userModule.user_ref.sex
+        },
+        date_created: Date.now()
       }
 
       if (this.validForm) {
         this.$store.dispatch('createMeetup', meetup)
-          .then(() => {
-            this.$router.push('/meetups')
-          })
+        .then(() => {
+          this.$router.push('/meetups')
+        })
       }
     }
   },
   computed: {
     validForm () {
       return this.title.length && 
-      this.$store.state.gmLocation.address.length &&
-      (this.customSize ? this.size : this.groupSize) &&
+      this.location.address.length &&
+      (this.isCustomSize ? this.customGroupSize : this.groupSize) &&
       this.description.length &&
       this.date && this.time
-    },
-    formattedDate () {
-      return `${this.date} ${this.time}`
     },
     location () {
       return this.$store.state.gmLocation
     },
-    customSize () {
+    isCustomSize () {
       return this.groupSize === 'Other'
     }
   },
   created () {
-    this.$store.commit('clearLoadedMeetUp')
+    // this.$store.commit('clearLoadedMeetUp')
   }
 }
 </script>

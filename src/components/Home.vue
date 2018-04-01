@@ -160,7 +160,7 @@ export default {
             time = meetup.date.split(' ')[1],
             size = meetup.size,
             seatHtml = '',
-            members = meetup.registeredMembers,
+            members = meetup.registeredMembers || []
             seatsLeft = parseInt(size) - parseInt(members.length) - 1,
             seatsLeftText = seatsLeft !== 0 ? (seatsLeft !== 1 ? seatsLeft + ' seats left' : 'Last seat') : 'Group Full'
 

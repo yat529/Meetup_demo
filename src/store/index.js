@@ -5,12 +5,14 @@ import * as firebase from 'firebase'
 
 // import modules
 import user from './modules/user.js'
+import meetup from './modules/meetup.js'
 
 Vue.use(Vuex)
 
 export const store = new Vuex.Store({
   modules: {
-    userModule: user
+    userModule: user,
+    meetupModule: meetup
   },
   state: {
     // local cache data from firebase
@@ -100,7 +102,7 @@ export const store = new Vuex.Store({
       console.log('data cached')
     },
     cacheRegisteredMeetups (state, meetup) {
-      let uid = state.user.uid
+      let uid = state.userModule.user
       let obj = {}
       let registeredMembers = []
       if (meetup.registeredMembers && meetup.registeredMembers[uid]) {
@@ -117,7 +119,7 @@ export const store = new Vuex.Store({
       }
     },
     cacheCreatedMeetups (state, meetup) {
-      let uid = state.user.uid
+      let uid = state.userModule.user
       let obj = {}
       let registeredMembers = []
       if (meetup.uid === uid) {
@@ -184,31 +186,31 @@ export const store = new Vuex.Store({
     
     addUserCreatedMeetup (state, payload) {
       // info add to user_basic obj
-      if (!state.user_basic.createdMeetups) {
-        state.user_basic.createdMeetups = {}
+      if (!state.userModule.user_ref.createdMeetups) {
+        state.userModule.user_ref.createdMeetups = {}
       }
-      state.user_basic.createdMeetups[payload] = true
+      state.userModule.user_ref.createdMeetups[payload] = true
     },
     deleteUserCreatedMeetup (state, payload) {
-      if (state.user_basic.createdMeetups[payload]) {
-        // state.user_basic.createdMeetups.splice(state.user_basic.createdMeetups.indexOf(payload), 1)
-        delete state.user_basic.createdMeetups[payload]
+      if (state.userModule.user_ref.createdMeetups[payload]) {
+        // state.userModule.user_ref.createdMeetups.splice(state.userModule.user_ref.createdMeetups.indexOf(payload), 1)
+        delete state.userModule.user_ref.createdMeetups[payload]
       }
     },
     addUserRegisteredMeetup (state, payload) {
       // info add to user_basic obj
       // payload is meetup key
-      if (!state.user_basic.registeredMeetups) {
+      if (!state.userModule.user_ref.registeredMeetups) {
         // leave it as array for now...
-        state.user_basic.registeredMeetups = {}
+        state.userModule.user_ref.registeredMeetups = {}
       }
-      state.user_basic.registeredMeetups[payload] = true
+      state.userModule.user_ref.registeredMeetups[payload] = true
     },
     deleteUserRegisteredMeetup (state, payload) {
       // payload is meetup key
-      if (state.user_basic.registeredMeetups[payload]) {
-        // state.user_basic.registeredMeetups.splice(state.user_basic.registeredMeetups.indexOf(payload), 1)
-        delete state.user_basic.registeredMeetups[payload]
+      if (state.userModule.user_ref.registeredMeetups[payload]) {
+        // state.userModule.user_ref.registeredMeetups.splice(state.userModule.user_ref.registeredMeetups.indexOf(payload), 1)
+        delete state.userModule.user_ref.registeredMeetups[payload]
       }
     },
     // register user to local cache of meetup
@@ -216,10 +218,10 @@ export const store = new Vuex.Store({
       // payload is meetup key
       let targetMeetup
       let user = {
-        uid: state.user.uid,
-        nickname: state.user_basic.nickname,
-        avatar: state.user_basic.avatar,
-        sex: state.user_basic.sex
+        uid: state.userModule.user,
+        nickname: state.userModule.user_ref.nickname,
+        avatar: state.userModule.user_ref.avatar,
+        sex: state.userModule.user_ref.sex
       }
 
       // if user already opened a meetup
@@ -244,7 +246,7 @@ export const store = new Vuex.Store({
     },
     deleteMeetupRegisteredMember (state, payload) {
       // payload is meetup key
-      let uid = state.user.uid
+      let uid = state.userModule.user
       let targetMeetup = state.loadedMeetups.find(meetup => meetup.key === payload)
       if (targetMeetup.registeredMembers.length) {
         targetMeetup.registeredMembers.forEach((member, index) => {
@@ -312,119 +314,15 @@ export const store = new Vuex.Store({
     }
   },
   actions: {
-    createMeetup (context, newMeetup) {
-      let key, file, fileExt, imageUrl
-      let meetup = {
-        title: newMeetup.title,
-        location: newMeetup.location,
-        size: newMeetup.size,
-        description: newMeetup.description,
-        date: newMeetup.date,
-        uid: context.state.user ? context.state.user.uid : undefined,
-        organizer: {
-          nickname: context.state.user_basic.nickname,
-          avatar: context.state.user_basic.avatar,
-          sex: context.state.user_basic.sex
-        }
-      }
-      return new Promise((resolve, reject) => {
-        context.commit('setLoading', true)
-        return firebase.database().ref('meetups').push(meetup)
-        .then(reference => {
-          key = reference.key
-          file = context.state.flimage
-          imageUrl = context.state.flimageTempUrl || ''
 
-          // check for uploaded file
-          if (file) {
-            let name = file.name
-            fileExt = name.slice(name.lastIndexOf('.'))
-            // upload the file
-            return firebase.storage().ref('meetups/images').child(key + fileExt).put(file)
-            .then(snapshot => {
-              // get the image url in firebase storage
-              imageUrl = snapshot.metadata.downloadURLs[0]
-              firebase.database().ref('/meetups').child(key).update({
-                imageExt: fileExt,
-                imageUrl: imageUrl
-              })
-            })
-            .then(() => {
-              // updated createdMeetups in users entry
-              firebase.database().ref('/users').child(meetup.uid).child('createdMeetups').child(key).set(true)
-            })
-          } else if (imageUrl) {
-            firebase.database().ref('/meetups').child(key).update({
-              imageExt: null,
-              imageUrl: imageUrl
-            })
-            firebase.database().ref('/users').child(meetup.uid).child('createdMeetups').child(key).set(true)
-          } else {
-            firebase.database().ref('/users').child(meetup.uid).child('createdMeetups').child(key).set(true)
-          }
-        })
-        .then(() => {
-          // add property to meetup obj
-          meetup.key = key
-          meetup.imageExt = fileExt
-          meetup.imageUrl = imageUrl
-          context.commit('createMeetup', meetup)
-          context.commit('addUserCreatedMeetup', key)
-          context.commit('setLoading', false)
-          // clear fileloader cache
-          context.commit('clearFileLoaderCache')
-          // clear google map location cache
-          context.commit('clearGoogleMapLocation')
-          // able to chain promise in component methods
-          resolve()
-        })
-        .catch(error => {
-          console.log(error)
-        })
-      })
-    },
-    deleteMeetup (context, meetup) {
-      let uid = context.state.user.uid
-      let key = meetup.key
-      console.log(key)
-      context.commit('setLoading', true)
-      // delete image in storage if exists
-      if (meetup.imageUrl && meetup.imageExt) {
-        let imageRef = key + meetup.imageExt
-        firebase.storage().ref('meetups/images').child(imageRef).delete()
-          .then(() => {
-            console.log('image file deleted')
-          })
-          .catch(error => {
-            console.log(error)
-          })
-      }
-
-      return new Promise((resolve, reject) => {
-        // delete entry in database
-        firebase.database().ref('meetups').child(key).remove()
-        .then(() => {
-          return firebase.database().ref('users').child(uid).child('createdMeetups').child(key).remove()
-        })
-        .then(() => {
-          context.commit('deleteMeetup', meetup)
-          context.commit('deleteUserCreatedMeetup', key)
-          context.commit('setLoading', false)
-          console.log('meetup deleted')
-          resolve()
-        })
-        .catch((error) => {
-          console.log(error)
-        })
-      })
-    },
+    
     registerMeetup (context, meetup) {
       // prepare the user info to be submitted
       let user = {
-        uid: context.state.user.uid,
-        nickname: context.state.user_basic.nickname,
-        avatar: context.state.user_basic.avatar,
-        sex: context.state.user_basic.sex
+        uid: context.state.userModule.user,
+        nickname: context.state.userModule.user_ref.nickname,
+        avatar: context.state.userModule.user_ref.avatar,
+        sex: context.state.userModule.user_ref.sex
       }
       let key = meetup.key
       // console.log(key)
@@ -448,7 +346,7 @@ export const store = new Vuex.Store({
       })
     },
     unregisterMeetup (context, meetup) {
-      let uid = context.state.user.uid
+      let uid = context.state.userModule.user
       let key = meetup.key
 
       return new Promise((resolve, reject) => {
@@ -469,61 +367,6 @@ export const store = new Vuex.Store({
         })
       })
     },
-    // load meetups from firebase, return a promise
-    loadMeetupsOnce (context) {
-      return new Promise((resolve, reject) => {
-        firebase.database().ref('meetups').once('value')
-        .then(snapshots => {
-          snapshots.forEach(snapshot => {
-            let meetup = snapshot.val()
-            meetup.key = snapshot.key
-            context.commit('cacheMeetups', meetup)
-          })
-          resolve()
-        })
-        .catch(error => {
-          console.log(error)
-        })
-      })
-    },
-    loadUserMeetupsOnce (context) {
-      return new Promise((resolve, reject) => {
-        firebase.database().ref('meetups').once('value')
-        .then(snapshots => {
-          snapshots.forEach(snapshot => {
-            let meetup = snapshot.val()
-            meetup.key = snapshot.key
-            context.commit('cacheRegisteredMeetups', meetup)
-            context.commit('cacheCreatedMeetups', meetup)
-          })
-          resolve()
-        })
-        .catch(error => {
-          console.log(error)
-        })
-      })
-    },
     
-    // when meetups page load
-    initPage (context) {
-      firebase.auth().onAuthStateChanged(user => {
-        if (user) {
-          context.dispatch('fetchUser', user)
-          .then(user_ref => {
-            context.commit('signInUser', {user, user_ref})
-          })
-        } else {
-          context.commit('signOutUser')
-        }
-
-        if (!context.state.loadedMeetups.length) {
-          context.commit('setLoading', true)
-          context.dispatch('loadMeetupsOnce')
-            .then(() => {
-              context.commit('setLoading', false)
-            })
-        }
-      })
-    }
   }
 })

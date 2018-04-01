@@ -168,6 +168,21 @@ const Users = {
         .then(user_snap => resolve(user_snap.val()))
         .catch(error => console.log(error))
       })
+    },
+
+    // User status watcher
+    // used in app created hook
+    watchUser (context) {
+      firebase.auth().onAuthStateChanged(user => {
+        if (user) {
+          context.dispatch('fetchUser', user)
+          .then(user_ref => {
+            context.commit('signInUser', {user, user_ref})
+          })
+        } else {
+          context.commit('signOutUser')
+        }
+      })
     }
 
   }
