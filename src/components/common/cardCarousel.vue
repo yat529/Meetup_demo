@@ -36,6 +36,17 @@
             ></CardButton>
           </v-card>
         </div>
+        <!-- placeholder (optional) -->
+        <div class="card-wrapper" ref="card" v-if="hasPlaceholder">
+          <v-card flat height="410px" class="card-item">
+            <v-layout justify-center align-center fill-height>
+              <v-btn flat large color="primary" @click="redirect">
+                <v-icon dark left>add_circle_outline</v-icon>
+                {{phText}}
+              </v-btn>
+            </v-layout>
+          </v-card>
+        </div>
       </v-layout>
     </v-container>
   </v-container>
@@ -48,16 +59,12 @@ export default {
   components: {
     CardButton
   },
-  props: {
-    meetups: {
-      type: Array
+  props: ['meetups', 'hasPlaceholder', 'phText'],
+  data () {
+    return {
+      showPlaceholder: false
     }
   },
-  // data () {
-  //   return {
-  //     meetups: []
-  //   }
-  // },
   methods: {
     loadMeetup (item) {
       this.$router.push('/meetup/' + item.key)
@@ -98,38 +105,42 @@ export default {
       const Day = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期天']
       let index = new Date(item.date).getDay()
       return Day[index]
+    },
+    redirect () {
+      this.$emit('redirect')
     }
   },
-  created () {
-    // // load meetups on init
-    // this.$store.dispatch('fetchMeetups')
-    // .then(meetups => {
-    //   this.meetups = meetups
-    // })
-  },
   updated () {
-    this.$nextTick(() => {
+    let that = this
+    if (!this.meetups) return
 
+
+    that.$nextTick(() => {
       // DOM Cache
-      let view = this.$refs.cardsView,
-          row = this.$refs.cardsRow,
-          cards = this.$refs.card,
-          card = this.$refs.card[0],
-          leftArrow = this.$refs.leftArrow,
-          rightArrow = this.$refs.rightArrow
-
+      let view = that.$refs.cardsView,
+          row = that.$refs.cardsRow,
+          cards = that.$refs.card,
+          card = that.$refs.card[0],
+          leftArrow = that.$refs.leftArrow,
+          rightArrow = that.$refs.rightArrow
+      
       let viewWidth = view.offsetWidth,
           cardWidth = card.offsetWidth,
           margin = 20
 
-      let cardsNum =cards.length,
-          offset = Math.floor(viewWidth / (cardWidth + 20 * 2)),
+      let cardsNum =cards.length
+
+      if (that.hasPlaceholder) cardsNum += 1
+
+      let offset = Math.floor(viewWidth / (cardWidth + 20 * 2)),
           viewLimit = Math.ceil(viewWidth / (cardWidth + 20 * 2)),
           rowWidth = (cardWidth + 20 * 2) * cardsNum - 20 * 2 // first & list card no left/right marigin
 
       let counter = 0,
           dist = 0,
           cardsLeft = cardsNum
+
+      console.log(cardsNum)
 
       row.style.width = rowWidth + 'px'
       
