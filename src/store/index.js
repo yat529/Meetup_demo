@@ -314,59 +314,6 @@ export const store = new Vuex.Store({
     }
   },
   actions: {
-
-    
-    registerMeetup (context, meetup) {
-      // prepare the user info to be submitted
-      let user = {
-        uid: context.state.userModule.user,
-        nickname: context.state.userModule.user_ref.nickname,
-        avatar: context.state.userModule.user_ref.avatar,
-        sex: context.state.userModule.user_ref.sex
-      }
-      let key = meetup.key
-      // console.log(key)
-
-      return new Promise((resolve, reject) => {
-        context.commit('setLoading', true)
-        firebase.database().ref('meetups').child(key).child('registeredMembers').child(user.uid).set(user)
-        .then(() => {
-          return firebase.database().ref('users').child(user.uid).child('registeredMeetups').child(key).set(true)
-        })
-        .then(() => {
-          context.commit('registerMeetup', meetup)
-          context.commit('addUserRegisteredMeetup', key)
-          context.commit('addMeetupRegisteredMember', key)
-          context.commit('setLoading', false)
-          resolve()
-        })
-      })
-      .catch(error => {
-        console.log(error)
-      })
-    },
-    unregisterMeetup (context, meetup) {
-      let uid = context.state.userModule.user
-      let key = meetup.key
-
-      return new Promise((resolve, reject) => {
-        context.commit('setLoading', true)
-        firebase.database().ref('meetups').child(key).child('registeredMembers').child(uid).remove()
-        .then(() => {
-          return firebase.database().ref('users').child(uid).child('registeredMeetups').child(key).remove()
-        })
-        .then(() => {
-          context.commit('unregisterMeetup', meetup)
-          context.commit('deleteUserRegisteredMeetup', key)
-          context.commit('deleteMeetupRegisteredMember', key)
-          context.commit('setLoading', false)
-          resolve()
-        })
-        .catch(error => {
-          console.log(error)
-        })
-      })
-    },
-    
+    // 
   }
 })

@@ -14,66 +14,94 @@
         <v-flex xs4 px-3></v-flex>
       </v-layout>
     </v-layout>
-    <h3 class="title mt-3 mb-3 primary--text">My Meetups</h3>
-    <v-layout row wrap class="mb-5">
-      <v-layout class="placeholder" justify-center align-center v-if="!createdMeetups.length">
-        <v-btn flat large color="primary" @click="redirectToCreate">Create a meetup</v-btn>
-      </v-layout>
-      <v-flex xs12 sm6 md4 xl3 v-for="item in createdMeetups" :key="item.id" class="px-2 py-2">
-        <v-card flat>
-          <v-card-media :src="item.imageUrl" height="200px">
-          </v-card-media>
-          <v-card-title primary-title>
-            <div>
-              <h3 class="info_name mb-0 primary--text">{{ item.title }}</h3>
-              <div class="mb-2">{{ item.date | DateFilter}}</div>
+    <h3 class="title mt-3 mb-3 primary--text">我发起的MEETUP</h3>
+    <v-layout row class="mb-5">
+      <v-container class="placeholder" v-if="!createdMeetups.length">
+        <v-layout justify-center align-center fill-height>
+          <v-btn flat large color="primary" @click="redirectToCreate">发起新的Meetup</v-btn>
+        </v-layout>
+      </v-container>
+      <div v-for="item in createdMeetups" :key="item.key" class="card-wrapper">
+          <v-card flat class="card-item">
+            <!-- <div class="date-wrapper">
+              <div class="date">
+                {{ getMonth(item) }} {{ getDate(item) }}
+              </div>
+              <div class="day">{{ getDay(item) }}</div>
+            </div> -->
+            
+            <v-card-media :src="getImgUrl(item)" height="200px" class="card-item-image">
+            </v-card-media>
+            <v-card-title primary-title class="pb-1">
+              <h3 class="mb-1 primary--text info_name">{{ item.title }}</h3>
+            </v-card-title>
+            <v-card-text class="pt-0">
               <div class="info_desc">{{ item.description }}</div>
-            </div>
-          </v-card-title>
-          <CardButton :item="item" v-on:edit="loadMeetup(item)" v-on:more="loadMeetup(item)"></CardButton>
-        </v-card>
-      </v-flex>
-      <v-flex xs12 sm6 md4 xl3 v-if="createdMeetups.length" class="px-2 py-2">
-        <v-card flat height="418px">
-          <v-layout justify-center align-center fill-height>
-            <v-btn flat large color="primary" @click="redirectToCreate">
-              <v-icon dark left>add_circle_outline</v-icon>
-              add more
-            </v-btn>
-          </v-layout>
-        </v-card>
-      </v-flex>
-    </v-layout>
-    <h3 class="title mb-3 primary--text">My Registered Meetups</h3>
-    <v-layout row wrap class="mb-5">
-      <v-layout class="placeholder" justify-center align-center v-if="!registeredMeetups.length">
-        <v-btn flat large color="primary" @click="redirectToMeetups">Register a meetup</v-btn>
-      </v-layout>
-      <v-flex xs12 sm6 md4 xl3 v-for="item in registeredMeetups" :key="item.id" class="px-2 py-2">
-        <v-card flat>
-          <v-card-media :src="item.imageUrl" height="200px">
-          </v-card-media>
-          <v-card-title primary-title>
-            <div>
-              <h3 class="info_name mb-0 primary--text">{{ item.title }}</h3>
-              <div class="mb-2">{{ item.date | DateFilter}}</div>
-              <div class="info_desc">{{ item.description }}</div>
-            </div>
-          </v-card-title>
-          <CardButton :item="item" v-on:unregister="unregisterMeetup(item)" v-on:more="loadMeetup(item)"></CardButton>
-        </v-card>
-      </v-flex>
-      <v-flex xs12 sm6 md4 xl3 v-if="registeredMeetups.length" class="px-2 py-2">
-        <v-card flat height="418px">
+            </v-card-text>
+
+            <CardButton :item="item" :showDelete="false" :initState="isUserRegistered(item)"
+            v-on:register="registerMeetup(item)" 
+            v-on:unregister="unregisterMeetup(item)" 
+            v-on:more="loadMeetup(item)"
+            ></CardButton>
+          </v-card>
+      </div>
+      <div class="card-wrapper" v-if="registeredMeetups.length">
+        <v-card flat height="410px" class="card-item">
           <v-layout justify-center align-center fill-height>
             <v-btn flat large color="primary" @click="redirectToMeetups">
               <v-icon dark left>add_circle_outline</v-icon>
-              add more
+              发起新的Meetup
             </v-btn>
           </v-layout>
         </v-card>
-      </v-flex>
+      </div>
     </v-layout>
+
+    <h3 class="title mb-3 primary--text">我加入的MEETUP</h3>
+    <v-layout row class="mb-5">
+      <v-container class="placeholder" v-if="!registeredMeetups.length">
+        <v-layout justify-center align-center fill-height>
+          <v-btn flat large color="primary" @click="redirectToMeetups">加入一个MEETUP</v-btn>
+        </v-layout>
+      </v-container>
+      <div v-for="item in registeredMeetups" :key="item.key" class="card-wrapper">
+          <v-card flat class="card-item">
+            <!-- <div class="date-wrapper">
+              <div class="date">
+                {{ getMonth(item) }} {{ getDate(item) }}
+              </div>
+              <div class="day">{{ getDay(item) }}</div>
+            </div> -->
+            
+            <v-card-media :src="getImgUrl(item)" height="200px" class="card-item-image">
+            </v-card-media>
+            <v-card-title primary-title class="pb-1">
+              <h3 class="mb-1 primary--text info_name">{{ item.title }}</h3>
+            </v-card-title>
+            <v-card-text class="pt-0">
+              <div class="info_desc">{{ item.description }}</div>
+            </v-card-text>
+
+            <CardButton :item="item" :showDelete="false" :initState="isUserRegistered(item)"
+            v-on:register="registerMeetup(item)" 
+            v-on:unregister="unregisterMeetup(item)" 
+            v-on:more="loadMeetup(item)"
+            ></CardButton>
+          </v-card>
+      </div>
+      <div class="card-wrapper" v-if="registeredMeetups.length">
+        <v-card flat height="410px" class="card-item">
+          <v-layout justify-center align-center fill-height>
+            <v-btn flat large color="primary" @click="redirectToMeetups">
+              <v-icon dark left>add_circle_outline</v-icon>
+              加入其它
+            </v-btn>
+          </v-layout>
+        </v-card>
+      </div>
+    </v-layout>
+
   </v-container>
 </template>
 <script>
@@ -91,21 +119,63 @@ export default {
     }
   },
   methods: {
-    deleteMeetup (item) {
-      this.$store.dispatch('deleteMeetup', item)
-    },
-    unregisterMeetup (item) {
-      this.$store.dispatch('unregisterMeetup', item)
-    },
-    loadMeetup (item) {
-      this.$store.commit('loadMeetup', item)
-      this.$router.push('/meetup/' + item.key)
-    },
+    // unregisterMeetup (item) {
+      //   this.$store.dispatch('unregisterMeetup', item)
+    // },
+    // loadMeetup (item) {
+      //   this.$store.commit('loadMeetup', item)
+    //   this.$router.push('/meetup/' + item.key)
+    // },
     redirectToCreate () {
       this.$router.push('/addmeetup')
     },
     redirectToMeetups () {
       this.$router.push('/meetups')
+    },
+    loadMeetup (item) {
+      this.$router.push('/meetup/' + item.key)
+    },
+    registerMeetup (item) {
+      if (this.$store.state.userModule.user) {
+        this.$store.dispatch('registerMeetup', item)
+      } else {
+        this.$router.push('/signin')
+      }
+    },
+    unregisterMeetup (item) {
+      this.$store.dispatch('unregisterMeetup', item)
+    },
+    deleteMeetup (item) {
+      this.$store.dispatch('deleteMeetup', item)
+    },
+    isUserRegistered (item) {
+      if (!this.$store.state.userModule.user) return false
+      if (!item.registeredMembers) return false
+      let uid = this.$store.state.userModule.user.uid
+      return Object.keys(item.registeredMembers).find(key => {
+        return key === uid
+      }) ?
+      true :
+      false
+    },
+    getImgUrl (item) {
+      return item.imageURLs[Object.keys(item.imageURLs)[0]]
+    },
+    getMonth (item) {
+      const Month = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+      let index = new Date(item.date).getMonth()
+      return Month[index]
+    },
+    getDate (item) {
+      return new Date(item.date).getDate() + 1
+    },
+    getDay (item) {
+      // const Day = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
+      const Day = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期天']
+      let index = new Date(item.date).getDay()
+      // let index = new Date('2018-04-01').getDay()
+      console.log(index)
+      return Day[index]
     }
   },
   computed: {
@@ -116,17 +186,63 @@ export default {
       return `background-image: url("${ this.user.photoURL }")`
     }
   },
-  created () {
-    this.$store.dispatch('fetchUserMeetups')
-    .then(userMeetups => {
-      this.createdMeetups = userMeetups.created
-      this.registeredMeetups = userMeetups.registered
-    })
+  mounted () {
+    if (this.user) {
+      this.$store.dispatch('fetchUserMeetups', this.user)
+      .then(userMeetups => {
+        this.createdMeetups = userMeetups.created
+        this.registeredMeetups = userMeetups.registered
+      })
+    }
   }
 }
 </script>
 <style lang="scss">
 .meetups {
+  .card-wrapper {
+    width: 288px;
+    margin: 20px;
+    border-radius: 15px !important;
+  }
+
+  .card-item {
+    position: relative;
+    box-shadow: 0 5px 15px -11px rgba(0, 0, 0, 0.4);
+    border-radius: 15px !important;
+  }
+
+  .date-wrapper {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 70px;
+    border-radius: 10px;
+    overflow: hidden;
+    z-index: 2;
+    
+    .date,
+    .day {
+      width: 70px;
+      height: 20px;
+      line-height: 20px;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .date {
+      background: #fff;
+    }
+
+    .day {
+      background: #000000;
+      color: #fff;
+      font-size: 12px;
+    }
+  }
+
+  .card-item-image {
+    border-radius: 15px 15px 0 0 !important;
+  }
 
   .info_name,
   .info_desc {

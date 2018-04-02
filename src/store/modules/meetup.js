@@ -46,8 +46,8 @@ const meetup = {
             }
 
             // fetch registed meetups
-            if (meetup.subscribers) {
-              let registered = Object.keys(meetup.subscribers).find(key => {
+            if (meetup.registeredMembers) {
+              let registered = Object.keys(meetup.registeredMembers).find(key => {
                 return key === user.uid
               })
               if (registered) {
@@ -55,6 +55,7 @@ const meetup = {
               }
             }
           })
+          console.log(userMeetups)
           resolve(userMeetups)
         })
         .catch(error => {
@@ -132,6 +133,40 @@ const meetup = {
         .catch((error) => {
           console.log(error)
         })
+      })
+    },
+
+
+    registerMeetup (context, meetup) {
+      let user = {
+        uid: context.rootState.userModule.user.uid,
+        nickname: context.rootState.userModule.user_ref.nickname,
+        avatar: context.rootState.userModule.user_ref.photoURL,
+        sex: context.rootState.userModule.user_ref.sex
+      }
+      let key = meetup.key
+
+      return new Promise((resolve, reject) => {
+        firebase.database().ref('meetups').child(key).child('registeredMembers').child(user.uid).set(user)
+        .then(() => {
+          return firebase.database().ref('users').child(user.uid).child('registeredMeetups').child(key).set(true)
+        })
+        .then(() => resolve())
+        .catch(error => console.log(error))
+      })
+    },
+
+    unregisterMeetup (context, meetup) {
+      let uid = context.rootState.userModule.user.uid,
+          key = meetup.key
+
+      return new Promise((resolve, reject) => {
+        firebase.database().ref('meetups').child(key).child('registeredMembers').child(uid).remove()
+        .then(() => {
+          return firebase.database().ref('users').child(uid).child('registeredMeetups').child(key).remove()
+        })
+        .then(() => resolve())
+        .catch(error => console.log(error))
       })
     },
 
