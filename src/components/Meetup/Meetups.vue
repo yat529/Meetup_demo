@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <CardCarousel :meetups="meetups"></CardCarousel>
+    <CardCarousel :cards="meetups"></CardCarousel>
   </v-container>
 </template>
 

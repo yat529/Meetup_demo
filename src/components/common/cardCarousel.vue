@@ -1,18 +1,18 @@
 <template>
-  <v-container class="carousel-wrapper px-0" >
-    <div class="left arrow" ref="leftArrow" v-if="meetups">
+  <v-container class="carousel-wrapper px-0">
+    <div class="left arrow" ref="leftArrow" v-if="meetups.length">
       <v-btn fab dark small color="primary">
         <v-icon dark>fas fa-chevron-circle-left</v-icon>
       </v-btn>
     </div>
-    <div class="right arrow" ref="rightArrow" v-if="meetups">
+    <div class="right arrow" ref="rightArrow" v-if="meetups.length">
       <v-btn fab dark small color="primary">
         <v-icon dark>fas fa-chevron-circle-right</v-icon>
       </v-btn>
     </div>
     <v-container class="meetups cards-view" ref="cardsView">
-      <v-layout row class="cards-row" ref="cardsRow">
-        <div v-for="item in meetups" :key="item.key" class="card-wrapper" ref="card" v-if="meetups">
+      <v-layout row class="cards-row" ref="cardsRow" id="cardsRow">
+        <div v-for="item in meetups" :key="item.key" class="card-wrapper" ref="card">
           <div class="date-wrapper">
             <div class="date">
               {{ getMonth(item) }} {{ getDate(item) }}
@@ -33,11 +33,12 @@
             v-on:register="registerMeetup(item)" 
             v-on:unregister="unregisterMeetup(item)" 
             v-on:more="loadMeetup(item)"
+            v-on:edit="editMeetup(item)"
             ></CardButton>
           </v-card>
         </div>
         <!-- placeholder (optional) -->
-        <div class="card-wrapper" ref="card" v-if="hasPlaceholder">
+        <div class="card-wrapper" v-if="hasPlaceholder&&meetups.length">
           <v-card flat height="410px" class="card-item">
             <v-layout justify-center align-center fill-height>
               <v-btn flat large color="primary" @click="redirect">
@@ -59,14 +60,22 @@ export default {
   components: {
     CardButton
   },
-  props: ['meetups', 'hasPlaceholder', 'phText'],
+  props: ['cards', 'hasPlaceholder', 'phText'],
   data () {
     return {
-      showPlaceholder: false
+      // 
+    }
+  },
+  computed: {
+    meetups () {
+      return this.cards
     }
   },
   methods: {
     loadMeetup (item) {
+      this.$router.push('/meetup/' + item.key)
+    },
+    editMeetup (item) {
       this.$router.push('/meetup/' + item.key)
     },
     registerMeetup (item) {
@@ -110,71 +119,74 @@ export default {
       this.$emit('redirect')
     }
   },
+  // created () {
+  //   console.log('created hook', this.meetups.length)
+  // },
+  // mounted () {
+  //   // this.$forceUpdate()
+  //   console.log('mounted hook', this.meetups.length)
+  // },
   updated () {
-    let that = this
-    if (!this.meetups) return
+    // console.log('updated hook', this.meetups.length)
+    // DOM Cache
+    let view = this.$refs.cardsView,
+        row = this.$refs.cardsRow,
+        cards = this.$refs.card
 
+    let card = cards[0],
+        leftArrow = this.$refs.leftArrow,
+        rightArrow = this.$refs.rightArrow
+    
+    let viewWidth = view.offsetWidth,
+        cardWidth = card.offsetWidth,
+        margin = 20
 
-    that.$nextTick(() => {
-      // DOM Cache
-      let view = that.$refs.cardsView,
-          row = that.$refs.cardsRow,
-          cards = that.$refs.card,
-          card = that.$refs.card[0],
-          leftArrow = that.$refs.leftArrow,
-          rightArrow = that.$refs.rightArrow
-      
-      let viewWidth = view.offsetWidth,
-          cardWidth = card.offsetWidth,
-          margin = 20
+    let cardsNum =cards.length
 
-      let cardsNum =cards.length
+    if (this.hasPlaceholder) cardsNum += 1
 
-      if (that.hasPlaceholder) cardsNum += 1
+    let offset = Math.floor(viewWidth / (cardWidth + 20 * 2)),
+        viewLimit = Math.ceil(viewWidth / (cardWidth + 20 * 2)),
+        rowWidth = (cardWidth + 20 * 2) * cardsNum - 20 * 2 // first & list card no left/right marigin
 
-      let offset = Math.floor(viewWidth / (cardWidth + 20 * 2)),
-          viewLimit = Math.ceil(viewWidth / (cardWidth + 20 * 2)),
-          rowWidth = (cardWidth + 20 * 2) * cardsNum - 20 * 2 // first & list card no left/right marigin
+    let counter = 0,
+        dist = 0,
+        cardsLeft = cardsNum
 
-      let counter = 0,
-          dist = 0,
-          cardsLeft = cardsNum
+    console.log(cardsNum)
 
-      console.log(cardsNum)
-
-      row.style.width = rowWidth + 'px'
-      
-      rightArrow.addEventListener('click', () => {
-        if (cardsLeft > viewLimit) {
-          counter ++
-          dist = (cardWidth + 20 * 2) * offset * counter
-          row.style.transform = `translateX(${-dist}px)` 
-          cardsLeft -= offset
-          if (cardsLeft <= viewLimit) {
-            row.style.transform = `translateX(${-(rowWidth - viewWidth)}px)`
-            dist = rowWidth - viewWidth
-          }
-        } else {
+    row.style.width = rowWidth + 'px'
+    
+    rightArrow.addEventListener('click', () => {
+      if (cardsLeft > viewLimit) {
+        counter ++
+        dist = (cardWidth + 20 * 2) * offset * counter
+        row.style.transform = `translateX(${-dist}px)` 
+        cardsLeft -= offset
+        if (cardsLeft <= viewLimit) {
           row.style.transform = `translateX(${-(rowWidth - viewWidth)}px)`
+          dist = rowWidth - viewWidth
         }
-      })
+      } else {
+        row.style.transform = `translateX(${-(rowWidth - viewWidth)}px)`
+      }
+    })
 
-      leftArrow.addEventListener('click', () => {
-        // check if reach end
-        if (cardsLeft < viewLimit) {
-          counter --
-          dist = (cardWidth + 20 * 2) * offset * counter
-          row.style.transform = `translateX(${-dist}px)`
-          cardsLeft += offset
-        } else if (cardsLeft === cardsNum) {
-          row.style.transform = `translateX(0px)`
-        } else {
-          counter --
-          dist = (cardWidth + 20 * 2) * offset * counter
-          row.style.transform = `translateX(${-dist}px)`
-          cardsLeft += offset
-        }
-      })
+    leftArrow.addEventListener('click', () => {
+      // check if reach end
+      if (cardsLeft < viewLimit) {
+        counter --
+        dist = (cardWidth + 20 * 2) * offset * counter
+        row.style.transform = `translateX(${-dist}px)`
+        cardsLeft += offset
+      } else if (cardsLeft === cardsNum) {
+        row.style.transform = `translateX(0px)`
+      } else {
+        counter --
+        dist = (cardWidth + 20 * 2) * offset * counter
+        row.style.transform = `translateX(${-dist}px)`
+        cardsLeft += offset
+      }
     })
   }
 }

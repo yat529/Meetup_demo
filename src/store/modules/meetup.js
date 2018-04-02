@@ -2,7 +2,12 @@
 import * as firebase from 'firebase'
 
 const meetup = {
-  state: {},
+  state: {
+    userMeetups: {
+      created: [],
+      registered: []
+    }
+  },
   getters: {},
   mutations: {},
   actions: {
@@ -33,6 +38,10 @@ const meetup = {
             registered: []
           }
 
+      if (!user) {
+        user = firebase.auth().currentUser
+      }
+
       return new Promise((resolve, reject) => {
         firebase.database().ref('meetups').once('value')
         .then(snapshots => {
@@ -55,7 +64,6 @@ const meetup = {
               }
             }
           })
-          console.log(userMeetups)
           resolve(userMeetups)
         })
         .catch(error => {
@@ -104,7 +112,6 @@ const meetup = {
       })
     },
 
-
     deleteMeetup (context, meetup) {
       let uid = context.state.userModule.user
           key = meetup.key
@@ -135,7 +142,6 @@ const meetup = {
         })
       })
     },
-
 
     registerMeetup (context, meetup) {
       let user = {
@@ -170,7 +176,15 @@ const meetup = {
       })
     },
 
+    fetchMeetup (context, meetupID) {
+      return new Promise((resolve, reject) => {
+        firebase.database().ref('meetups').child(meetupID).once('value')
+        .then(snapshot => resolve(snapshot))
+        .catch(error => console.log(error))
+      })
+    },
 
+    closeMeetup (context) {},
   }
 }
 

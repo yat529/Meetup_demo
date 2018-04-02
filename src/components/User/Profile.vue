@@ -16,22 +16,22 @@
     </v-layout>
     <h3 class="title mt-3 mb-3 primary--text">我发起的MEETUP</h3>
     <v-layout row class="mb-5">
-      <v-container class="placeholder" v-if="!createdMeetups.length">
+      <v-container class="placeholder mt-4" v-if="!createdMeetups.length">
         <v-layout justify-center align-center fill-height>
           <v-btn flat large color="primary" @click="redirectToCreate">发起新的Meetup</v-btn>
         </v-layout>
       </v-container>
-      <CardCarousel :meetups="createdMeetups" :hasPlaceholder="true" phText="发起新的Meetup" v-on:redirect="redirectToCreate"></CardCarousel>
+      <CardCarousel :cards="createdMeetups" :hasPlaceholder="true" phText="发起新的Meetup" v-on:redirect="redirectToCreate"></CardCarousel>
     </v-layout>
 
     <h3 class="title mb-3 primary--text">我加入的MEETUP</h3>
     <v-layout row class="mb-5">
-      <v-container class="placeholder" v-if="!registeredMeetups.length">
+      <v-container class="placeholder mt-4" v-if="!registeredMeetups.length">
         <v-layout justify-center align-center fill-height>
           <v-btn flat large color="primary" @click="redirectToMeetups">加入一个MEETUP</v-btn>
         </v-layout>
       </v-container>
-      <CardCarousel :meetups="registeredMeetups" :hasPlaceholder="true" phText="加入新的MEETUP" v-on:redirect="redirectToMeetups"></CardCarousel>
+      <CardCarousel :cards="registeredMeetups" :hasPlaceholder="true" phText="加入新的MEETUP" v-on:redirect="redirectToMeetups"></CardCarousel>
     </v-layout>
 
   </v-container>
@@ -49,8 +49,9 @@ export default {
   },
   data () {
     return {
-      createdMeetups: {},
-      registeredMeetups: {}
+      // user: {},
+      createdMeetups: [],
+      registeredMeetups: []
     }
   },
   methods: {
@@ -83,14 +84,11 @@ export default {
     }
   },
   created () {
-    if (this.user) {
-      this.$store.dispatch('fetchUserMeetups', this.user)
-      .then(userMeetups => {
-        this.createdMeetups = userMeetups.created
-        this.registeredMeetups = userMeetups.registered
-        this.$forceUpdate()
-      })
-    }
+    this.$store.dispatch('fetchUserMeetups', this.user)
+    .then(userMeetups => {
+      this.createdMeetups = userMeetups.created
+      this.registeredMeetups = userMeetups.registered
+    })
   }
 }
 </script>
@@ -171,8 +169,9 @@ export default {
     box-shadow: 0 1px 10px -6px rgba(0, 0, 0, 0.5)
   }
   .placeholder {
-    height: 200px;
+    height: 400px;
     background: #eeeeee;
+    border-radius: 15px;
   }
 }
 </style>

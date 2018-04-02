@@ -16,16 +16,16 @@ export const store = new Vuex.Store({
   },
   state: {
     // local cache data from firebase
-    loadedMeetups: [],
-    createdMeetups: [],
-    registeredMeetups: [],
-    loadedMeetup: null,
+    // loadedMeetups: [],
+    // createdMeetups: [],
+    // registeredMeetups: [],
+    // loadedMeetup: null,
     // state
-    loading: false,
-    error: null,
-    successLogin: false,
-    successLogout: false,
-    errorAlet: false,
+    // loading: false,
+    // error: null,
+    // successLogin: false,
+    // successLogout: false,
+    // errorAlet: false,
     // fileloader related
     flimage: null,
     flimageTempUrl: null,
@@ -39,17 +39,17 @@ export const store = new Vuex.Store({
     }
   },
   getters: {
-    // loadedMeetups and sort
-    loadedMeetups (state) {
-      console.log('data loaded')
-      return state.loadedMeetups.sort((meetupA, meetupB) => {
-        return meetupA.date > meetupB.date
-      })
-    },
-    // featuredMeetups, first 5 of loadedMeetups
-    featuredMeetups (state, getters) {
-      return getters.loadedMeetups.slice(0, 5)
-    },
+    // // loadedMeetups and sort
+    // loadedMeetups (state) {
+    //   console.log('data loaded')
+    //   return state.loadedMeetups.sort((meetupA, meetupB) => {
+    //     return meetupA.date > meetupB.date
+    //   })
+    // },
+    // // featuredMeetups, first 5 of loadedMeetups
+    // featuredMeetups (state, getters) {
+    //   return getters.loadedMeetups.slice(0, 5)
+    // },
     // menu items - vary by sign in status
     menuItems (state) {
       // when not login
