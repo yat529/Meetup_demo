@@ -1,10 +1,46 @@
 <template>
-  <v-container>
+  <v-container fluid px-0 py-0>
+    <v-layout row class="header" v-if="item.uid">
+      <v-container>
+        <v-layout row justify-center align-center>
+          <v-flex xs7>
+            <div class="date-info">
+              <div class="date">
+                <v-icon class="icon">far fa-calendar-alt</v-icon>
+                {{ item.date }}
+              </div>
+              <div class="time">
+                <v-icon class="icon">far fa-clock</v-icon>
+                {{ item.time }}
+              </div>
+            </div>
+            <h1>{{ item.title }}</h1>
+            <v-container class="user-info px-0 py-0">
+              <v-layout>
+                <div class="organizer">
+                  <div class="avatar" :style="avatarBgUrl"></div>
+                  <div class="name">{{ item.organizer.nickname }}</div>
+                </div>
+                <div class="members"></div>
+              </v-layout>
+            </v-container>
+          </v-flex>
+          <v-flex xs5 class="address-info">
+            <!-- <div>          
+              <div class="address">{{item.location.address}}</div>
+              <div class="map">
+                <loadLocationMap :item="item"></loadLocationMap>
+              </div>
+            </div> -->
+          </v-flex>
+        </v-layout>
+      </v-container>
+    </v-layout>
     <v-layout row wrap>
-      <v-flex xs12 class="meetup" v-if="item">
-        <v-card>
+      <v-flex xs12 class="meetup" v-if="item.uid">
+        <v-card flat>
           <!-- toolbar header -->
-          <v-toolbar dark color="" flat>
+          <!-- <v-toolbar dark color="primary" flat>
             <v-toolbar-title class="">{{ item.title }}</v-toolbar-title>
             <v-spacer></v-spacer>
             <v-btn flat>
@@ -17,61 +53,63 @@
             <v-btn icon>
               <v-icon>more_vert</v-icon>
             </v-btn>
-          </v-toolbar>
+          </v-toolbar> -->
           <!-- image -->
-          <v-card-media :src="item.imageUrl" height="500px" class="mb-3">
+          <v-card-media :src="getImgUrl(item)" height="500px" class="mb-3">
           </v-card-media>
           <!-- card body -->
-          <v-layout row class="orgnizer px-2 py-2 mb-3">
-            <v-flex xs12 sm2 class="text-xs-center" v-if="item.organizer">
-              <div class="avatar" :style="avatarBgUrl"></div>
-              <p class="primary--text">{{ item.organizer.nickname }}</p>
-            </v-flex>
-            <v-flex xs12 sm10>
-              <h3 class="primary--text">Information</h3>
-              <p>{{ item.description }}</p>
-            </v-flex>
-          </v-layout>
+          <v-container>
+            <v-layout row class="orgnizer px-2 py-2 mb-3">
+              <v-flex xs12 sm2 class="text-xs-center">
+                <div class="avatar" :style="avatarBgUrl"></div>
+                <p class="primary--text">{{ item.organizer.nickname }}</p>
+              </v-flex>
+              <v-flex xs12 sm10>
+                <h3 class="primary--text">Information</h3>
+                <p>{{ item.description }}</p>
+              </v-flex>
+            </v-layout>
 
-          <v-layout row class="seats px-2 py-2 mb-3">
-            <v-flex xs12 sm2 class="text-xs-center">
-              <h3 class="primary--text mb-1">Followers</h3>
-            </v-flex>
-            <v-flex xs12 sm10>
-              <!-- <div class="seat" v-for="member in item.registeredMembers" :key="member.uid">
-                <div class="avatar" :style="getAvatarBgUrl(member)"></div>
-                <p class="member-name">{{ member.nickname }}</p>
-              </div> -->
-              <Seats :group="item.registeredMembers" :max="5"></Seats>
-            </v-flex>
-          </v-layout>
+            <v-layout row class="seats px-2 py-2 mb-3">
+              <v-flex xs12 sm2 class="text-xs-center">
+                <h3 class="primary--text mb-1">Followers</h3>
+              </v-flex>
+              <v-flex xs12 sm10>
+                <Seats :group="item.registeredMembers" :max="item.size"></Seats>
+              </v-flex>
+            </v-layout>
 
-          <v-layout row class="location px-2 py-2 mb-3">
-            <v-flex xs12 sm2 class="text-xs-center">
-              <h3 class="primary--text mb-1">Location</h3>
-            </v-flex>
-            <v-flex xs12 sm10>
-              <div class="map">
-                <loadLocationMap :item="item"></loadLocationMap>
-              </div>
-            </v-flex>
-          </v-layout>
+            <!-- <v-layout row class="location px-2 py-2 mb-3">
+              <v-flex xs12 sm2 class="text-xs-center">
+                <h3 class="primary--text mb-1">Location</h3>
+              </v-flex>
+              <v-flex xs12 sm10>
+                <div class="map">
+                  <loadLocationMap :item="item"></loadLocationMap>
+                </div>
+              </v-flex>
+            </v-layout> -->
 
-          <v-layout row class="otherinfo px-2 py-2 mb-3">
-            <v-flex xs12 sm2 class="text-xs-center">
-              <h3 class="primary--text mb-1">More Info</h3>
-            </v-flex>
-            <v-flex xs12 sm10>
-              <p>{{ item.otherInfo }}</p>
-            </v-flex>
-          </v-layout>
+            <v-layout row class="otherinfo px-2 py-2 mb-3">
+              <v-flex xs12 sm2 class="text-xs-center">
+                <h3 class="primary--text mb-1">More Info</h3>
+              </v-flex>
+              <v-flex xs12 sm10>
+                <p>{{ item.otherInfo }}</p>
+              </v-flex>
+            </v-layout>
 
-          <v-layout row class="px-2 py-2">
-            <v-flex>
-              <CardButton :item="item" v-on:register="registerMeetup(item)" v-on:unregister="unregisterMeetup(item)" v-on:remove="deleteMeetup(item)" v-on:close="closeMeetup" :noMore="true" :showDelete="true"></CardButton>
-            </v-flex>
-          </v-layout>
-          
+            <v-layout row class="px-2 py-2">
+              <v-flex>
+                <CardButton :item="item" 
+                v-on:register="registerMeetup(item)" 
+                v-on:unregister="unregisterMeetup(item)" 
+                v-on:remove="deleteMeetup(item)" 
+                v-on:close="closeMeetup" 
+                :noMore="true" :showDelete="true"></CardButton>
+              </v-flex>
+            </v-layout>
+          </v-container>
         </v-card>
       </v-flex>
     </v-layout>
@@ -92,28 +130,23 @@ export default {
   },
   data() {
     return {
+      item: {},
       otherInfo: '',
     }
   },
   methods: {
     registerMeetup (item) {
-      this.$store.dispatch('registerMeetup', item)
-        .then(() => {
-          this.item = this.$store.state.loadedMeetup
-          this.$forceUpdate()
-        })
+      if (this.$store.state.userModule.user) {
+        this.$store.dispatch('registerMeetup', item)
+      } else {
+        this.$router.push('/signin')
+      }
     },
     unregisterMeetup (item) {
       this.$store.dispatch('unregisterMeetup', item)
-        .then(() => {
-          this.item = this.$store.state.loadedMeetup
-          this.$forceUpdate()
-        })
-      // console.log(item)
     },
     closeMeetup () {
       this.$router.go(-1)
-      // this.$store.commit('clearLoadedMeetUp')
     },
     editMeetup (item) {},
     deleteMeetup (item) {
@@ -121,81 +154,122 @@ export default {
       .then(() => {
         this.closeMeetup()
       })
-    }
+    },
+    getImgUrl (item) {
+      return item.imageURLs[Object.keys(item.imageURLs)[0]]
+    },
   },
   computed: {
     avatarBgUrl () {
-      if (!this.item || !this.item.organizer) return false
-      let avatarUrl = this.item.organizer.avatar
-      return `background-image: url("${ avatarUrl }")`
-    },
-    item () {
-      // cache loadedMeetup
-      let item,
-          key = this.$route.params.id
-
-      if (!key) return
-
-      item = this.$store.state.loadedMeetups.find(meetup => meetup.key === key)
-
-      if (!item) {
-        // load from firebase
-        firebase.database().ref('meetups').child(key).once('value')
-        .then(snapshot => {
-          item = snapshot.val()
-          if (!item) return
-          this.$store.commit('formatMeetup', item)
-        })
-      } else {
-        this.$store.commit('loadMeetup', item)
-      }
-
-      return item
+      let photoURL = this.item.organizer.photoURL
+      return `background-image: url("${ photoURL }")`
     }
   },
   created () {
     // cache loadedMeetup
-    // let key = this.$route.params.id
-    // let item = this.$store.state.loadedMeetups.find(meetup => meetup.key === key)
+    let key = this.$route.params.id
+    this.$store.dispatch('fetchMeetup', key)
+    .then(snapshot => {
+      this.item = snapshot
+      this.item.key = key
+      console.log(this.item)
+    })
 
-    // if (!item) {
-    //   // load from firebase
-    //   firebase.database().ref('meetups').child(key).once('value')
-    //   .then(snapshot => {
-    //     let meetup = snapshot.val()
-    //     this.$store.commit('formatMeetup', meetup)
-    //     this.item = this.$store.state.loadedMeetup
-    //   })
-    // } else {
-    //   this.$store.commit('loadMeetup', item)
-    //   this.item = this.$store.state.loadedMeetup
-    // }
-  },
-  destroyed () {
-    // clear cache when closed
-    this.$store.commit('clearLoadedMeetUp')
   }
 }
 </script>
 <style lang="scss" scoped>
-.meetup {
-  .orgnizer {
-    .avatar {
+.header {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  background: rgba(255, 255, 255, 0.5);
+  border-top: 1px solid #ffffff;
+
+  h1 {
+    margin-bottom: 20px;
+  }
+
+  .date-info {
+    margin-bottom: 15px;
+    overflow: hidden;
+
+    .date,
+    .time {
       display: inline-block;
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      border: 3px solid #eeeeee;
-      background-position: center;
-      background-size: cover;
+      padding: 10px 15px 10px 0;
+      margin-right: 10px;
+      line-height: 25px;
+      font-size: 18px;
+
+      .icon {
+        display: inline-block;
+        margin-right: 10px;
+        line-height: 25px;
+        vertical-align: top;
+      }
     }
   }
-  .location {
+
+  .user-info {
+    .organizer {
+      position: relative;
+      text-align: center;
+      overflow: hidden;
+
+      .avatar {
+        float: left;
+        position: relative;
+        margin-right: 10px;
+        margin: 0;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        border: 3px solid #eeeeee;
+        background-position: center;
+        background-size: cover;
+        vertical-align: top;
+      }
+
+      .name {
+        float: left;
+        position: relative;
+        padding: 0 15px;
+        margin: 0;
+        height: 30px;
+        line-height: 30px;
+        font-size: 15px;
+        font-weight: bold;
+        vertical-align: top;
+        
+        &::after {
+          content: "发起人";
+          position: absolute;
+          top: 100%;
+          left: 0;
+          width: 100%;
+          height: 30px;
+          line-height: 30px;
+          font-size: 13px;
+          font-weight: normal;
+        }
+      }
+    }
+    .members {}
+  }
+
+  .address-info {
+    position: relative;
+
+    .address {
+      padding: 5px 10px;
+    }
+
     .map {
-      width: 100%;
+      position: relative;
       height: 300px;
-      background: #eeeeee
     }
   }
 }
+
 </style>

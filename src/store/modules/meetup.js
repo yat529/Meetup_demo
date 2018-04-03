@@ -179,12 +179,10 @@ const meetup = {
     fetchMeetup (context, meetupID) {
       return new Promise((resolve, reject) => {
         firebase.database().ref('meetups').child(meetupID).once('value')
-        .then(snapshot => resolve(snapshot))
+        .then(snapshot => resolve(snapshot.val()))
         .catch(error => console.log(error))
       })
-    },
-
-    closeMeetup (context) {},
+    }
   }
 }
 

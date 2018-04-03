@@ -1,6 +1,6 @@
 <template>
-  <div class="seats">
-    <div class="seat" v-for="member in group" :key="member.key" v-if="group">
+  <div class="seats" v-if="group">
+    <div class="seat" v-for="member in group" :key="member.key">
       <div class="avatar" :style="getAvatarBgUrl(member)"></div>
       <p class="member-name">{{ member.nickname }}</p>
     </div>
@@ -15,10 +15,15 @@ import * as firebase from 'firebase'
 export default {
   props: {
     group: {
-      type: Array
+      type: Object
     },
     max: {
       type: Number
+    }
+  },
+  data () {
+    return {
+      size: this.max
     }
   },
   methods: {
@@ -28,8 +33,8 @@ export default {
   },
   computed: {
     vacancy () {
-      let taken = this.group ? this.group.length : 0
-      let vacancy = this.max - taken
+      let taken = Object.keys(this.group).length || 0
+      let vacancy = this.size - taken
       let html = ''
       for (let i = 0; i < vacancy; i++) {
         html += `<div class="seat" ><div class="empty"></div></div>`
