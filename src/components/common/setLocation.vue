@@ -1,8 +1,8 @@
 <template>
   <div class="map-component">
-    <v-layout class="input-wrapper">
-      <v-flex xs12>
-        <v-text-field label="Location" class="mt-5" required ref="setAddress"></v-text-field>
+    <v-layout class="input-wrapper" row style="padding-top: 18px">
+      <v-flex>
+        <v-text-field label="输入地址" required ref="setAddress"></v-text-field>
       </v-flex>
     </v-layout>
       
@@ -53,11 +53,14 @@ export default {
 
 <style lang="scss">
 .map {
-  height: 200px;
+  height: 300px;
   background: #eeeeee;
 }
 .input-wrapper {
   position: relative;
+  padding-top: 18px;
+  margin-bottom: 5px;
+  box-shadow: none !important;
 
   .input-group {
     padding-top: 0;
@@ -65,12 +68,6 @@ export default {
     label {
       top: 0;
     }
-  }
-
-  .locator {
-    top: 50%;
-    right: 25px;
-    transform: translateY(-50%);
   }
 }
 

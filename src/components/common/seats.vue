@@ -1,9 +1,10 @@
 <template>
   <div class="seats" v-if="group">
-    <div class="seat" v-for="member in group" :key="member.key">
+    <!-- <div class="seat" v-for="member in group" :key="member.key">
       <div class="avatar" :style="getAvatarBgUrl(member)"></div>
       <p class="member-name">{{ member.nickname }}</p>
-    </div>
+    </div> -->
+    <UserAvatar class="seat" :user="member" v-for="member in group" :key="member.key"></UserAvatar>
     <div class="vacant-wrapper" v-html="vacancy"></div>
     
   </div>
@@ -11,8 +12,12 @@
 
 <script>
 /* eslint-disable */
+import UserAvatar from './avatar'
 import * as firebase from 'firebase'
 export default {
+  components: {
+    UserAvatar
+  },
   props: {
     group: {
       type: Object
@@ -47,46 +52,53 @@ export default {
 
 <style lang="scss">
 .seats {
-  overflow: auto;
+  // overflow: auto;
 
   .seat {
     float: left;
-    position: relative;
-    width: 50px;
-    height: 50px;
+    margin-right: 15px;
+    // position: relative;
+    // width: 50px;
+    // height: 50px;
     // margin-right: 10px;
     // margin-bottom: 25px;
 
-    .avatar {
-      position: absolute;
-      top: 0;
-      left: 50%;
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      border: 3px solid #eeeeee;
-      background-position: center;
-      background-size: cover;
-      transform: translateX(-50%);
-    }
+    // .avatar {
+    //   position: absolute;
+    //   top: 0;
+    //   left: 50%;
+    //   width: 50px;
+    //   height: 50px;
+    //   border-radius: 50%;
+    //   border: 3px solid #eeeeee;
+    //   background-position: center;
+    //   background-size: cover;
+    //   transform: translateX(-50%);
+    // }
 
     .empty {
-      position: absolute;
-      top: 0;
-      left: 50%;
+      // position: absolute;
+      // top: 0;
+      // left: 50%;
+      // width: 50px;
+      // height: 50px;
+      // border-radius: 50%;
+      // border: 3px solid #eeeeee;
+      // transform: translateX(-50%);
+      position: relative;;
+      margin: 0 auto 10px auto;
       width: 50px;
       height: 50px;
+      background: #c0c0c0;
       border-radius: 50%;
       border: 3px solid #eeeeee;
-      background: #c0c0c0;
-      transform: translateX(-50%);
     }
 
-    .member-name {
-      position: relative;
-      top: 100%;
-      text-align: center;
-    }
+    // .member-name {
+    //   position: relative;
+    //   top: 100%;
+    //   text-align: center;
+    // }
   }
   .vacant-wrapper {
     overflow: auto;

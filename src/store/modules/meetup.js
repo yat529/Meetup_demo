@@ -6,7 +6,14 @@ const meetup = {
     userMeetups: {
       created: [],
       registered: []
-    }
+    },
+    type: ['公开', '半公开', '私人'],
+    category: [
+      '美食', '运动', '学习', '聊天', '摄影', '游戏', '旅游', '休闲活动'
+    ],
+    tag: [
+
+    ]
   },
   getters: {},
   mutations: {},

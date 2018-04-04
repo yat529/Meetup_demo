@@ -163,7 +163,7 @@ export default {
         dist = (cardWidth + 20 * 2) * offset * counter
         row.style.transform = `translateX(${-dist}px)` 
         cardsLeft -= offset
-        if (cardsLeft <= viewLimit) {
+        if (cardsLeft < viewLimit) {
           row.style.transform = `translateX(${-(rowWidth - viewWidth)}px)`
           dist = rowWidth - viewWidth
         }
@@ -173,13 +173,7 @@ export default {
     })
 
     leftArrow.addEventListener('click', () => {
-      // check if reach end
-      if (cardsLeft < viewLimit) {
-        counter --
-        dist = (cardWidth + 20 * 2) * offset * counter
-        row.style.transform = `translateX(${-dist}px)`
-        cardsLeft += offset
-      } else if (cardsLeft === cardsNum) {
+      if (cardsLeft === cardsNum) {
         row.style.transform = `translateX(0px)`
       } else {
         counter --
@@ -222,7 +216,7 @@ export default {
   .cards-row {
     display: block;
     overflow: hidden;
-    transition: transform 0.2s ease-in-out;
+    transition: transform 0.5s ease-in-out;
   }
 }
 

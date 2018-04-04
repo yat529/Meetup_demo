@@ -6,7 +6,7 @@
     <v-btn flat color="orange" v-if="!isOrganizer&&!registered" @click="register">加入</v-btn>
     <v-btn flat color="green" v-if="!isOrganizer&&registered" @click="unregister">已注册</v-btn>
     <v-btn flat color="orange" v-if="!hideMore&&!isOrganizer" @click="more">更多</v-btn>
-    <v-btn flat color="orange" v-if="hideMore" @click="close">关闭</v-btn>
+    <v-btn flat color="orange" v-if="hideMore&&showClose" @click="close">关闭</v-btn>
     <v-spacer></v-spacer>
     <v-btn flat color="red" outline v-if="isOrganizer&&showDelete" @click="remove">删除</v-btn>
   </v-card-actions>
@@ -20,10 +20,16 @@ export default {
       type: Object
     },
     noMore: {
-      type: Boolean
+      type: Boolean,
+      default: false
     },
     showDelete: {
-      type: Boolean
+      type: Boolean,
+      default: true
+    },
+    showClose: {
+      type: Boolean,
+      default: true
     },
     initState: {
       type: Boolean,

@@ -1,9 +1,9 @@
 <template>
   <v-container fluid px-0 py-0>
     <v-layout row class="header" v-if="item.uid">
-      <v-container>
-        <v-layout row justify-center align-center>
-          <v-flex xs7>
+      <v-container px-4>
+        <v-layout row wrap justify-center align-center>
+          <v-flex xs12 md7>
             <div class="date-info">
               <div class="date">
                 <v-icon class="icon">far fa-calendar-alt</v-icon>
@@ -21,11 +21,18 @@
                   <div class="avatar" :style="avatarBgUrl"></div>
                   <div class="name">{{ item.organizer.nickname }}</div>
                 </div>
-                <div class="members"></div>
+                <div class="status">
+                  <CardButton :item="item" 
+                    v-on:register="registerMeetup(item)" 
+                    v-on:unregister="unregisterMeetup(item)" 
+                    v-on:remove="deleteMeetup(item)"
+                    :initState="isUserRegistered(item)"
+                    :noMore="true" :showDelete="true" :showClose="false"></CardButton>
+                </div>
               </v-layout>
             </v-container>
           </v-flex>
-          <v-flex xs5 class="address-info">
+          <v-flex xs12 md5>
             <!-- <div>          
               <div class="address">{{item.location.address}}</div>
               <div class="map">
@@ -39,21 +46,6 @@
     <v-layout row wrap>
       <v-flex xs12 class="meetup" v-if="item.uid">
         <v-card flat>
-          <!-- toolbar header -->
-          <!-- <v-toolbar dark color="primary" flat>
-            <v-toolbar-title class="">{{ item.title }}</v-toolbar-title>
-            <v-spacer></v-spacer>
-            <v-btn flat>
-              <v-icon left>schedule</v-icon>
-              {{ item.date | DateFilter }}
-            </v-btn>
-            <v-btn icon>
-              <v-icon>supervisor_account</v-icon>
-            </v-btn>
-            <v-btn icon>
-              <v-icon>more_vert</v-icon>
-            </v-btn>
-          </v-toolbar> -->
           <!-- image -->
           <v-card-media :src="getImgUrl(item)" height="500px" class="mb-3">
           </v-card-media>
@@ -101,12 +93,12 @@
 
             <v-layout row class="px-2 py-2">
               <v-flex>
-                <CardButton :item="item" 
+                <!-- <CardButton :item="item" 
                 v-on:register="registerMeetup(item)" 
                 v-on:unregister="unregisterMeetup(item)" 
                 v-on:remove="deleteMeetup(item)" 
                 v-on:close="closeMeetup" 
-                :noMore="true" :showDelete="true"></CardButton>
+                :noMore="true" :showDelete="true"></CardButton> -->
               </v-flex>
             </v-layout>
           </v-container>
@@ -154,6 +146,16 @@ export default {
       .then(() => {
         this.closeMeetup()
       })
+    },
+    isUserRegistered (item) {
+      if (!this.$store.state.userModule.user) return false
+      if (!item.registeredMembers) return false
+      let uid = this.$store.state.userModule.user.uid
+      return Object.keys(item.registeredMembers).find(key => {
+        return key === uid
+      }) ?
+      true :
+      false
     },
     getImgUrl (item) {
       return item.imageURLs[Object.keys(item.imageURLs)[0]]
@@ -235,7 +237,7 @@ export default {
         float: left;
         position: relative;
         padding: 0 15px;
-        margin: 0;
+        margin: 0 15px 0 0;
         height: 30px;
         line-height: 30px;
         font-size: 15px;
@@ -255,7 +257,9 @@ export default {
         }
       }
     }
-    .members {}
+    .status {
+      align-self: center;
+    }
   }
 
   .address-info {
