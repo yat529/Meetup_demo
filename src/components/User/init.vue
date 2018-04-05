@@ -149,15 +149,29 @@ export default {
 				sex: this.sex,
 				phone: this.phone
 			}
-			// upload avatar photo
-			if (this.$store.state.flimage && this.$store.state.flimageTempUrl) {
-				this.$store.dispatch('uploadUserAvatar')
-			}
-
-			this.$store.dispatch('updateUserProfile', userProfile)
+			
+			return new Promise((resolve, reject) => {
+				// upload avatar photo
+				if (this.$store.state.flimage && this.$store.state.flimageTempUrl) {
+					this.$store.dispatch('uploadUserAvatar')
+					.then(() => {
+						this.$store.dispatch('updateUserProfile', userProfile)
+						.then(() => resolve())
+					})
+				} else {
+					this.$store.dispatch('updateUserProfile', userProfile)
+					.then(() => resolve())
+				}
+			})
 			.then(() => {
+				// need to refetch the user info, to update the user_ref obj
+				return this.$store.dispatch('fetchUser', this.$store.state.userModule.user)
+			})
+			.then((user_ref) => {
 				if (this.dialog) this.dialog = false
 				this.step = 3
+				// update the user_ref obj
+				this.$store.commit('updateUser', user_ref)
 			})
 		},
 		redirectToProfile () {
@@ -190,7 +204,7 @@ export default {
 		},
 
 		infoConfirmed () {
-			return this.nickname && this.fname && this.lname
+			return this.nickname.length && this.fname.length && this.lname.length
 		}
 	},
 

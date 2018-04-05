@@ -19,9 +19,7 @@ export default {
     UserAvatar
   },
   props: {
-    group: {
-      type: Object
-    },
+    group: [Object, Array],
     max: {
       type: Number
     }

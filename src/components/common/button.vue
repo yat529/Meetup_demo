@@ -4,7 +4,8 @@
     <v-btn flat color="orange" v-if="isOrganizer" @click="eidt">编辑</v-btn>
     <!-- only if not organizer -->
     <v-btn flat color="orange" v-if="!isOrganizer&&!registered" @click="register">加入</v-btn>
-    <v-btn flat color="green" v-if="!isOrganizer&&registered" @click="unregister">已注册</v-btn>
+    <v-btn flat color="green" v-if="!isOrganizer&&registered&&!needOwnerApproval" @click="unregister">已注册</v-btn>
+    <v-btn flat color="orange" v-if="!isOrganizer&&registered&&needOwnerApproval" @click="unregister">已申请</v-btn>
     <v-btn flat color="orange" v-if="!hideMore&&!isOrganizer" @click="more">更多</v-btn>
     <v-btn flat color="orange" v-if="hideMore&&showClose" @click="close">关闭</v-btn>
     <v-spacer></v-spacer>
@@ -69,6 +70,9 @@ export default {
     },
     hideMore () {
       return this.noMore
+    },
+    needOwnerApproval () {
+      return this.item.type === '半公开'
     }
   },
   created () {

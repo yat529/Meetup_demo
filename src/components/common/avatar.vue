@@ -18,7 +18,9 @@
           <!-- add more -->
         </div>
         <v-layout px-3 py-3>
-          <v-btn class="primary" flat small dark>加为好友</v-btn>
+          <v-btn class="primary" flat small dark @click="sendRequest(user)">加为好友</v-btn>
+          <v-spacer></v-spacer>
+          <v-btn class="primary" flat small dark @click="confirmRequest(user)">通过请求</v-btn>
           <v-spacer></v-spacer>
           <v-btn class="primary" flat small dark @click.stop="showInfoCard = !showInfoCard">返回</v-btn>
         </v-layout>
@@ -30,7 +32,7 @@
 <script>
 /* eslint-disable */
 export default {
-  props: ['user'],
+  props: ['user', 'meetupKey'],
   data () {
     return {
       showInfoCard: false
@@ -38,7 +40,17 @@ export default {
   },
   methods: {
     getAvatarBgUrl (user) {
-      return `background-image: url("${ user.avatar }")`
+      return `background-image: url("${ user.avatar || user.photoURL}")`
+    },
+    sendRequest (user) {
+      this.$store.dispatch('sendFriendRequest', user.uid)
+      .then(() => {
+        console.log('request sent')
+      })
+    },
+    confirmRequest (user) {
+      console.log(user.uid, this.meetupKey)
+      this.$store.dispatch('confirmMemberRequest', {target_uid: user.uid, meetup_key: this.meetupKey})
     }
   },
 }

@@ -80,7 +80,16 @@ export default {
     },
     registerMeetup (item) {
       if (this.$store.state.userModule.user) {
-        this.$store.dispatch('registerMeetup', item)
+        // if item.type === '公开'
+        // this.$store.dispatch('registerMeetup', item)
+        
+        // if item.type === '半公开'
+        // first send request
+        this.$store.dispatch('sendJoinRequest', item)
+        .then(() => {
+          console.log('join request sent')
+        })
+
       } else {
         this.$router.push('/signin')
       }
