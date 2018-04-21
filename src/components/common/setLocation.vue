@@ -17,6 +17,11 @@ import Vue from 'vue'
 import {Map} from '@/plugins/googleMaps'
 
 export default {
+  props: {
+    initalLocation: {
+      type: Object
+    }
+  },
   data () {
     return {
       zoom: 13
@@ -33,11 +38,23 @@ export default {
       let input = that.$refs.setAddress.$el.querySelector('input')
       // !important, overwirte the default value set by google api
       input.placeholder = ''
+
       
-      let option = {
-        zoom: that.zoom
+      let map,
+          option = {
+            zoom: that.zoom
+          }
+
+      if (this.initalLocation) {
+        input.focus()
+        input.placeholder = this.initalLocation.address
+        option.center = this.initalLocation.LatLng
+        map = new Map(elem, option).locate(null, true)
+      } else {
+        map = new Map(elem, option).locate(null, false)
       }
-      let map = new Map(elem, option).locate(null, false)
+
+      // let map = new Map(elem, option).locate(null, false)
 
       map.autocomplete(input, null, toDB => {
         map.locate({

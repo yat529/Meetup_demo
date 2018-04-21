@@ -16,7 +16,7 @@
 	</v-layout>
 	<v-layout>
 		<v-flex xs12>
-			<div v-if="imageUrl" class="preview">
+			<div v-if="imageUrl&&showPreview" class="preview">
 				<p class="info--text mb-1">图片预览</p>
 				<img :src="imageUrl" />
 			</div>
@@ -28,6 +28,12 @@
 <script>
 /* eslint-disable */
 export default {
+	props: {
+		showPreview: {
+			type: Boolean,
+			default: true
+		}
+	},
 	data () {
 		return {
 			imageName: '',

@@ -2,11 +2,11 @@
   <v-container px-5 py-0>
     <v-layout row px-5>
       <v-flex xs12>
-        <v-card flat class="px-4 py-4">
+        <v-card flat color="transparent" class="px-4 py-4" v-if="user">
           <!-- card body - form -->
           <form @submit.prevent="createMeetup">
             <v-card-text class="px-4 py-4">
-              <h1 class="primary--text mb-4">发起新的MEETUP</h1>
+              <h1 class="primary--text mb-4">发起新的米团</h1>
               <!-- type -->
               <v-container class="text-wrapper">
                 <h3 class="text-title">类型</h3>
@@ -52,17 +52,28 @@
 
               <v-container class="text-wrapper">
                 <h3 class="text-title">通知好友</h3>
-                <div class="person-card-wrapper">
-                  <!-- <div class="person-card" @click="addFriend(friend)" v-for="friend in user.friends" :key="friend.uid"> -->
-                  <div class="person-card">
-                    <div class="avatar" :style="avatarBgUrl"></div>
-                    <div class="name primary--text">{{ user.nickname }}</div>
-                    <div class="indicator">
-                      <!-- <i class="fas fa-check-circle" v-if="friend.selected === true"></i> -->
-                      <i class="fas fa-check-circle" v-if="true"></i>
-                    </div>
-                  </div>
-                </div>
+                <v-btn small round flat class="primary--text edit-friends-list" v-show="selectedFirends.length && !selectFriendsMode"
+                @click="selectFriendsMode = true">
+                  <v-icon left small>fas fa-sliders-h</v-icon>
+                  编辑列表
+                </v-btn>
+                <v-layout class="person-card-wrapper" row wrap v-if="selectFriendsMode">        
+                  <UserList :users="friends" :showInviteFriend="true"
+                  v-on:confirm="confirmFriendSelection"
+                  v-on:close="selectFriendsMode = false"></UserList>
+                </v-layout>
+
+                <v-layout class="person-card-wrapper" row wrap v-else-if="!selectFriendsMode">
+                  <v-layout class="placeholder" row justify-center align-center v-if="!selectedFirends.length">
+                    <v-btn flat round color="primary" @click="selectFriends">
+                      <v-icon left>add_circle_outline</v-icon>
+                      选择好友
+                    </v-btn>
+                  </v-layout>
+                  <v-layout row justify-end align-center v-else-if="selectedFirends.length">
+                    <UserCards :users="selectedFirends"></UserCards>
+                  </v-layout>
+                </v-layout>
               </v-container>
 
               <!-- title input -->
@@ -71,8 +82,8 @@
                 <v-text-field
                   label="必填"
                   v-model="title"
-                  :rules="[(v) => v.length <= 25 || '不超过25个字']"
-                  :counter="25"
+                  :rules="[(v) => v.length <= 80 || '不超过80个字']"
+                  :counter="80"
                   required
                 ></v-text-field>
               </v-container>
@@ -91,7 +102,7 @@
                   </v-tab>
                   <v-tab-item>
                     <v-card flat>
-                      <v-card-text class="mt-3 image-section">
+                      <v-card-text class="mt-3 preview-image-section">
                         <!-- image insertion -->
                         <fileloader></fileloader>
                       </v-card-text>
@@ -103,8 +114,8 @@
                   </v-tab>
                   <v-tab-item>
                     <v-card flat>
-                      <v-card-text class="mt-3 image-section">
-                        <urlpreviewer :clear="clearUrl"></urlpreviewer>
+                      <v-card-text class="mt-3 preview-image-section">
+                        <urlpreviewer :clear="clearUrl" :showPreview="true"></urlpreviewer>
                       </v-card-text>
                     </v-card>
                   </v-tab-item>
@@ -142,6 +153,49 @@
                   textarea
                   rows="10"
                 ></v-text-field>
+              </v-container>
+
+              <!-- list -->
+              <v-container class="text-wrapper">
+                <h3 class="text-title mb-2">活动计划</h3>
+                <p class="subheadingfont primary--text mb-4">将以列表的形式显示, 适用于行程规划, 时间线等元素</p>
+                
+                <v-container row class="list-preview-wrapper mb-4" v-show="list.length">
+                  <p class="subheadingfont primary--text">列表预览</p>
+                  <v-layout row class="mb-4">
+                    <div class="list-wrapper" v-if="list.length">
+                      <div class="list" v-for="(item, index) in list" :key="index">
+                        <div class="decor"></div>
+                        <div class="body">
+                          <div class="title">{{ item.title }}</div>
+                          <div class="content">{{ item.content }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </v-layout>
+                </v-container>
+
+                <v-layout row>
+                  <v-text-field
+                    label="标题"
+                    v-model="listTitle"
+                    required
+                  ></v-text-field>
+                </v-layout>
+                <v-layout row>
+                  <v-text-field
+                    label="内容"
+                    v-model="listContent"
+                    multi-line
+                  ></v-text-field>
+                </v-layout>
+
+                <v-layout row justify-center>
+                  <v-btn round dark color="primary" @click="addToList">
+                    <v-icon small left>far fa-check-circle</v-icon>
+                    加入列表
+                  </v-btn>
+                </v-layout>
               </v-container>
 
               <!-- date&time picker input -->
@@ -205,7 +259,7 @@
             </v-card-text>
             <!-- button -->
             <v-layout class="px-4 py-4" row wrap>
-              <v-btn large flat :disabled="!validForm" class="primary" type="submit">创建MEETUP</v-btn>
+              <v-btn large flat :disabled="!validForm" class="primary" type="submit">创建米团</v-btn>
               <v-spacer></v-spacer>
               <v-btn large flat outline class="primary--text" type="button" @click="goBack">返回</v-btn>
             </v-layout>
@@ -221,9 +275,13 @@
 import fileloader from '@/components/common/fileloader'
 import urlpreviewer from '@/components/common/urlpreviewer'
 import setLocationMap from '@/components/common/setLocation'
+import UserList from '@/components/common/userList'
+import UserCards from '@/components/common/userCards'
 
 export default {
   components: {
+    UserList,
+    UserCards,
     fileloader,
     urlpreviewer,
     setLocationMap
@@ -244,7 +302,11 @@ export default {
       clearUrl: false,
       type_selected: '',
       cat_selected: '',
-      selectedFirends: [this.user],
+      selectFriendsMode: false,
+      selectedFirends: [],
+      list: [],
+      listTitle: '',
+      listContent: '',
     }
   },
   methods: {
@@ -256,6 +318,7 @@ export default {
         location: this.location,
         size: this.isCustomSize ? this.customGroupSize : this.groupSize,
         description: this.description,
+        list: this.list,
         date: this.date,
         time: this.time,
         uid: this.$store.state.userModule.user_ref.uid,
@@ -269,20 +332,46 @@ export default {
 
       if (this.validForm) {
         this.$store.dispatch('createMeetup', meetup)
-        .then(() => {
-          this.$router.push('/meetups')
+        .then(key => {
+          // invite friend
+          let invitedFriends = this.selectedFirends
+          if (invitedFriends.length) {
+            invitedFriends.forEach(friend => {
+              // remove the checked property
+              this.$delete(friend, 'checked')
+              this.$store.dispatch('sendGroupInvitation', {
+                target_user: friend, 
+                meetup_key: key
+              })
+            })
+          }
+          this.$router.push('/meetup/' + key)
         })
       }
     },
-    addFriend (firend) {
-      if (friend.selected === undefined) {
-        Vue.set(friend, 'selected', false)
-      }
-      friend.selected = !friend.selected
-      this.selectedFirends.push(firend)
+
+    confirmFriendSelection (list) {
+      this.selectedFirends = list
+      this.selectFriendsMode = false
     },
+
+    selectFriends () {
+      this.selectFriendsMode = true
+    },
+    
     goBack () {
       this.$router.go(-1)
+    },
+
+    addToList () {
+      let item = {
+        title: this.listTitle,
+        content: this.listContent
+      }
+      this.list.push(item)
+
+      this.listTitle = ''
+      this.listContent = ''
     }
   },
   computed: {
@@ -308,6 +397,16 @@ export default {
     user () {
       return this.$store.state.userModule.user_ref
     },
+    friends () {
+      let array = [],
+          user = this.user
+      if (user.friends) {
+        for(let key in user.friends) {
+          array.push(user.friends[key])
+        }
+      }
+      return array
+    },
     avatarBgUrl () {
       if (this.user) {
         let photoURL = this.user.photoURL
@@ -322,9 +421,10 @@ export default {
 </script>
 <style lang="scss">
 .text-wrapper {
+  position: relative;
   margin-bottom: 25px;
   padding: 25px 35px;
-  background: #fafafa;
+  background: #ffffff;
   box-shadow: 0 2px 13px -7px rgba(0, 0, 0, 0.4);
 
   .text-title {
@@ -351,23 +451,20 @@ export default {
 
 .section-wrapper {
   margin-bottom: 25px;
-  background: #fafafa;
+  background: #ffffff;
   box-shadow: 0 2px 13px -7px rgba(0, 0, 0, 0.4);
 
-  .image-section {
+  .preview-image-section {
+	  min-height: 120px;
     padding: 25px 35px;
-    background: #fafafa;
+    background: #ffffff;
   }
 }
 
 .custom-border {
   .input-group__input {
-    border: none !important;
+    border: 1px solid #eeeeee !important;
     background: #fff !important;
-
-    &:focus {
-      box-shadow: 0 2px 10px -5px rgba(0, 0, 0, 0.4);
-    }
   }
 }
 
@@ -420,7 +517,7 @@ export default {
     font-weight: 500;
     color: #a1887f;
     border-radius: 5px;
-    box-shadow: 0 2px 10px -7px rgba(0, 0, 0, 0.4);
+    // box-shadow: 0 2px 10px -7px rgba(0, 0, 0, 0.4);
     cursor: pointer;
 
     &.checked {
@@ -440,63 +537,98 @@ export default {
 
 .person-card-wrapper {
   margin-top: 25px;
-  overflow: hidden;
+  padding: 5px;
+  max-height: 350px;
+  overflow: auto;
 
-  .person-card {
-    position: relative;
-    float: left;
-    padding: 5px 10px;
-    margin-right: 15px;
-    margin-bottom: 15px;
-    width: 105px;
-    height: 125px;
-    background: #ffffff;
-    border-radius: 10px;
-    transition: all 0.1s ease-in;
+  .placeholder {
+    width: 100%;
+    height: 150px;
+    border-radius: 15px;
+    background: #eeeeee;
+  }
+}
+
+.edit-friends-list {
+  position: absolute;
+  top: 20px;
+  right: 35px;
+}
+
+.list-preview-wrapper {
+  padding: 15px;
+  border: 2px solid #eeeeee;
+}
+
+.list-wrapper {
+  width: 100%;
+  padding: 0;
+
+  .list {
+    width: 100%;
+    // height: 100%;
+    padding: 0px;
     overflow: hidden;
-    cursor: pointer;
 
-    &:hover {
-      box-shadow: 0 2px 10px -6px rgba(0, 0, 0, 0.4);
-    }
-
-    .avatar {
-      display: block;
-      width: 60px;
-      height: 60px;
-      margin: 10px auto 5px auto;
-      border-radius: 50%;
-      border: 3px solid #eeeeee;
-      background-position: center;
-      background-size: cover;
-    }
-    .name {
+    .body {
+      position: relative;
       width: 100%;
-      padding: 5px 10px;
-      margin-bottom: 10px;
-      text-align: center;
-      font-weight: 400;
-      font-size: 13px;
+      height: 100%;
+      padding: 15px 30px 15px 60px;
+
+      &::before,
+      &::after {
+        content: '';
+        position: absolute;
+        left: 10px;
+      }
+
+      &::before {
+        top: 0;
+        width: 5px;
+        height: 100%;
+        background: #eeeeee;
+        transform: translateX(-50%);
+      }
+
+      &::after {
+        top: 50%;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: bisque;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 2px 5px -2px rgba(0, 0, 0, 0.5);
+      }
+
+      .title {
+        font-size: 15px !important;
+        font-weight: 400;
+        margin-bottom: 10px;
+      }
+      .content {
+        font-size: 14px;
+        font-weight: 300;
+      }
     }
 
-    .indicator {
-      position: absolute;
-      top: -22px;
-      right: -22px;
-      width: 45px;
-      height: 45px;
-      font-size: 12px;
-      color: #ffffff;
-      text-align: center;
-      background: green;
-      transform: rotate(45deg);
+    &:first-child {
+      .body::before {
+        top: 50%;
+        width: 5px;
+        height: 50%;
+        background: #eeeeee;
+        transform: translateX(-50%);
+      }
+    }
 
-      i {
-        position: absolute;
-        bottom: 2px;
-        left: 50%;
-        transform: translateX(-50%) rotate(-45deg);
-        font-size: 12px;
+    &:last-child {
+      .body::before {
+        bottom: 50%;
+        width: 5px;
+        height: 50%;
+        background: #eeeeee;
+        transform: translateX(-50%);
       }
     }
   }

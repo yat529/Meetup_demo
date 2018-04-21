@@ -14,7 +14,7 @@
     </v-layout>
     <v-layout>
       <v-flex xs12>
-        <div v-if="imageUrl" class="preview">
+        <div v-if="imageUrl&&showPreview" class="preview">
           <p class="info--text mb-1">图片预览</p>
           <img :src="imageUrl" />
         </div>
@@ -24,10 +24,21 @@
 </template>
 
 <script>
+/* eslint-disable */
 export default {
+  props: {
+		showPreview: {
+			type: Boolean,
+			default: true
+    },
+    defaultUrl: {
+      type: String,
+      default: ''
+    }
+	},
   data () {
     return {
-      imageUrl: '',
+      imageUrl: this.defaultUrl,
       urlSubmitted: false
     }
   },
@@ -37,6 +48,11 @@ export default {
         this.$store.commit('setFileLoaderCache', {
           file: null,
           fileTempUrl: this.imageUrl
+        })
+      } else {
+        this.$store.commit('setFileLoaderCache', {
+          file: null,
+          fileTempUrl: null
         })
       }
     },

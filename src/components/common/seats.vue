@@ -1,105 +1,104 @@
 <template>
   <div class="seats" v-if="group">
-    <!-- <div class="seat" v-for="member in group" :key="member.key">
-      <div class="avatar" :style="getAvatarBgUrl(member)"></div>
-      <p class="member-name">{{ member.nickname }}</p>
-    </div> -->
-    <UserAvatar class="seat" :user="member" v-for="member in group" :key="member.key"></UserAvatar>
-    <div class="vacant-wrapper" v-html="vacancy"></div>
-    
+    <UserAvatar class="seat occupied" :user="member" v-on:click="openModal(member.uid)"
+    v-for="(member, index) in group" :key="index"></UserAvatar>
+    <div class="seat" v-for="seat in vacancy" :key="seat + 'vacancy'">
+      <div class="empty"></div>
+    </div>
+
+    <UserPreviewModal :targetUID="target_uid" :meetupKey="meetupKey" :modal="modal" v-if="modal"
+    :showRedirectAndAddFriend="showRedirectAndAddFriend"
+    :showRemoveFriend="showRemoveFriend"
+    :showRemoveMember="showRemoveMember"
+    :showApproveFriend="showApproveFriend"
+    :showApproveMember="showApproveMember"
+    v-on:close="closeModal"></UserPreviewModal>
   </div>
 </template>
 
 <script>
 /* eslint-disable */
-import UserAvatar from './avatar'
-import * as firebase from 'firebase'
+import UserAvatar from '@/components/common/avatar'
+import UserPreviewModal from '@/components/common/userPreviewModal'
+
 export default {
   components: {
-    UserAvatar
+    UserAvatar,
+    UserPreviewModal
   },
   props: {
-    group: [Object, Array],
-    max: {
+    group: {
+      type: Array
+    },
+    size: {
       type: Number
+    },
+    meetupKey: {
+      type: String
+    },
+    showRedirectAndAddFriend: {
+      type: Boolean,
+      default: false
+    },
+    showRemoveFriend: {
+      type: Boolean,
+      default: false
+    },
+    showRemoveMember: {
+      type: Boolean,
+      default: false
+    },
+    showApproveFriend: {
+      type: Boolean,
+      default: false
+    },
+    showApproveMember: {
+      type: Boolean,
+      default: false
     }
   },
   data () {
     return {
-      size: this.max
+      modal: false,
+      target_uid: '',
     }
   },
   methods: {
-    getAvatarBgUrl (member) {
-      return `background-image: url("${ member.avatar }")`
+    openModal (target_uid) {
+      console.log('click')
+      this.target_uid = target_uid,
+      this.modal = true
+    },
+    closeModal () {
+      this.target_uid = '',
+      this.modal = false
     }
   },
   computed: {
     vacancy () {
-      let taken = Object.keys(this.group).length || 0
-      let vacancy = this.size - taken
-      let html = ''
-      for (let i = 0; i < vacancy; i++) {
-        html += `<div class="seat" ><div class="empty"></div></div>`
-      }
-      return html
-    }
+      return this.size - this.group.length // groupmember already include organizer
+    },
   }
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .seats {
-  // overflow: auto;
+  overflow: auto;
 
   .seat {
     float: left;
     margin-right: 15px;
-    // position: relative;
-    // width: 50px;
-    // height: 50px;
-    // margin-right: 10px;
-    // margin-bottom: 25px;
-
-    // .avatar {
-    //   position: absolute;
-    //   top: 0;
-    //   left: 50%;
-    //   width: 50px;
-    //   height: 50px;
-    //   border-radius: 50%;
-    //   border: 3px solid #eeeeee;
-    //   background-position: center;
-    //   background-size: cover;
-    //   transform: translateX(-50%);
-    // }
 
     .empty {
-      // position: absolute;
-      // top: 0;
-      // left: 50%;
-      // width: 50px;
-      // height: 50px;
-      // border-radius: 50%;
-      // border: 3px solid #eeeeee;
-      // transform: translateX(-50%);
       position: relative;;
       margin: 0 auto 10px auto;
-      width: 50px;
-      height: 50px;
+      width: 60px;
+      height: 60px;
       background: #c0c0c0;
       border-radius: 50%;
       border: 3px solid #eeeeee;
     }
-
-    // .member-name {
-    //   position: relative;
-    //   top: 100%;
-    //   text-align: center;
-    // }
-  }
-  .vacant-wrapper {
-    overflow: auto;
   }
 }
 </style>

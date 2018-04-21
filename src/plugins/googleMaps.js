@@ -443,6 +443,7 @@ Overlay.prototype.onAdd = function() {
   this.layer = this.getPanes().floatPane
   let closeBtn = document.createElement('div')
   closeBtn.setAttribute('class', 'close')
+  closeBtn.innerHTML = '<i class="fas fa-times-circle"></i>'
   this.container.innerHTML = this.html
   this.container.firstElementChild.appendChild(closeBtn)
   this.layer.appendChild(this.container)

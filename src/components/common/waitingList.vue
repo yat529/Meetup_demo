@@ -20,13 +20,7 @@
             <div class="info_desc">{{ item.description }}</div>
           </v-card-text>
 
-          <CardButton :item="item"
-          :initState="isUserRegistered(item)"
-          v-on:edit="editMeetup(item)"
-          :noMore="true"
-          :showDelete="false"
-          :showClose="false"
-          ></CardButton>
+          <CardButton :item="item" :user="user" v-on:edit="editMeetup(item)"></CardButton>
         </v-card>
       </div>
 
@@ -34,13 +28,13 @@
         <div class="arrow">
           <i class="fas fa-arrow-circle-left wl-icon"></i>
         </div>
-        <NameCards :users="requests[item.key]"
-        :showAddMember="true"></NameCards>
+        <UserCards :users="item.newMember" :meetupKey="item.key"
+        :showApproveMember="true"></UserCards>
       </div>
     </div>
 
     <!-- pagination -->
-    <div class="text-xs-center wl-pagination">
+    <div class="text-xs-center wl-pagination" v-if="listCount > 1">
       <v-pagination :length="listCount" :total-visible="7" v-model="counter" circle></v-pagination>
     </div>
   </div>
@@ -48,13 +42,13 @@
 
 <script>
 /* eslint-disable */
-import CardButton from '@/components/common/button'
-import NameCards from '@/components/common/nameCard'
+import CardButton from '@/components/common/cardButton'
+import UserCards from '@/components/common/userCards'
 
 export default {
   components: {
     CardButton,
-    NameCards
+    UserCards
   },
   props: {
     requests: {
@@ -70,14 +64,19 @@ export default {
     }
   },
   computed: {
+    user () {
+      return this.$store.state.userModule.user_ref
+    },
     list () {
       let list = []
-      for (let key in this.requests) {
-        let match = this.meetups.find(item => {
-          return item.key === key
+      this.meetups.forEach(meetup => {
+        this.requests.forEach(item => {
+          if (item.key === meetup.key) {
+            meetup.newMember = item.newMember
+            list.push(meetup)
+          }
         })
-        list.push(match)
-      }
+      })
       return list
     },
     listCount () {

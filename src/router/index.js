@@ -9,9 +9,18 @@ import Home from '@/components/Home'
 import Meetups from '@/components/Meetup/Meetups'
 import CreateMeetup from '@/components/Meetup/CreateMeetup'
 import LoadedMeetup from '@/components/Meetup/Meetup'
+// Profile Page
 import Profile from '@/components/User/Profile'
 import ProfileInit from '@/components/User/init'
 import ProfileUpdate from '@/components/User/update'
+import ProfileDashboard from '@/components/User/dashboard'
+import ProfileFriends from '@/components/User/friendList'
+import ProfileCreatedMeetup from '@/components/User/createdMeetup'
+import ProfileRegisteredMeetup from '@/components/User/registeredMeetup'
+import ProfilePendingMeetup from '@/components/User/pendingMeetup'
+// User Public Page
+import UserPublicPage from '@/components/User/Public'
+
 import Signup from '@/components/User/Signup'
 import Signin from '@/components/User/Signin'
 
@@ -54,6 +63,29 @@ export default new Router({
       path: '/profile',
       name: 'Profile',
       component: Profile,
+      redirect: '/profile/dashboard',
+      children: [
+        {
+          path: 'dashboard',
+          component: ProfileDashboard
+        },
+        {
+          path: 'friends',
+          component: ProfileFriends
+        },
+        {
+          path: 'createdmeetup',
+          component: ProfileCreatedMeetup
+        },
+        {
+          path: 'registeredmeetup',
+          component: ProfileRegisteredMeetup
+        },
+        {
+          path: 'pendingmeetup',
+          component: ProfilePendingMeetup
+        },
+      ],
       beforeEnter: routerGuard
     },
     {
@@ -63,9 +95,9 @@ export default new Router({
       beforeEnter: routerGuard
     },
     {
-      path: '/profile/update',
-      name: 'ProfileUpdate',
-      component: ProfileUpdate,
+      path: '/user/:id',
+      name: 'UserPublicPage',
+      component: UserPublicPage,
       beforeEnter: routerGuard
     },
     {

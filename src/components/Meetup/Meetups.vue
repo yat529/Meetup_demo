@@ -1,17 +1,15 @@
 <template>
   <v-container>
-    <CardCarousel :cards="meetups"></CardCarousel>
+    <CardCarousel :cards="meetups" v-if="meetups.length"></CardCarousel>
   </v-container>
 </template>
 
 <script>
 /* eslint-disable */
-import CardButton from '@/components/common/button'
 import CardCarousel from '@/components/common/cardCarousel'
 
 export default {
   components: {
-    CardButton,
     CardCarousel
   },
   data () {
@@ -21,9 +19,11 @@ export default {
   },
   created () {
     // load meetups on init
+    this.$store.commit('setLoading', true)
     this.$store.dispatch('fetchMeetups')
     .then(meetups => {
       this.meetups = meetups
+      this.$store.commit('setLoading', false)
     })
   }
 }

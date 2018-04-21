@@ -17,7 +17,7 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.9);
   text-align: center;
   margin: auto;
   z-index: 99;

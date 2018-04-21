@@ -1,7 +1,7 @@
 <template>
   <v-container fill-height>
     <v-layout align-center justify-center>
-      <v-flex xs12 sm6>
+      <v-flex class="cus-center-box" xs12 sm6>
         <v-alert type="success" :value="showSuccessAlert" v-if="showSuccessAlert">
             Login Successful
         </v-alert>
@@ -20,24 +20,24 @@
             <v-toolbar-side-icon>
               <v-icon class="primary--text">person_add</v-icon>
             </v-toolbar-side-icon>
-            <v-toolbar-title class="primary--text">Join Meetup</v-toolbar-title>
+            <v-toolbar-title class="primary--text">加入米团, 探索身边的精彩</v-toolbar-title>
           </v-toolbar>
           <v-divider class="mb-4"></v-divider>
           <v-form class="mb-4" ref="accSignupForm" @submit.prevent="createUser">
             <v-layout row>
               <v-flex xs10 offset-xs1>
                 <v-card-text class="px-4 py-4">
-                  <h3 class="primary--text title mb-3">Sign up your account</h3>
+                  <h3 class="primary--text title mb-3">注册米团账户</h3>
                   <v-text-field
                     name="userEmail"
-                    label="Enter E-mail"
+                    label="邮箱地址"
                     v-model="email"
                     :rules="emailRules"
                   ></v-text-field>
                   <v-text-field
                     name="userPassword"
-                    label="Enter Password"
-                    hint="At least 8 characters"
+                    label="密码"
+                    hint="至少输入8个字符"
                     v-model="password"
                     min="8"
                     :append-icon="psw_show ? 'visibility' : 'visibility_off'"
@@ -48,7 +48,7 @@
                   ></v-text-field>
                   <v-text-field
                     name="userPasswordConfirm"
-                    label="Confirm Password"
+                    label="确认密码"
                     v-model="passwordToCompare"
                     :append-icon="psw_check_show ? 'visibility' : 'visibility_off'"
                     :append-icon-cb="() => (psw_check_show = !psw_check_show)"
@@ -59,7 +59,7 @@
                   ></v-text-field>
                 </v-card-text>
                 <v-layout justify-center>
-                  <v-btn large flat dark class="primary" type="submit">CREATE ACCOUNT</v-btn>
+                  <v-btn large flat dark class="primary" type="submit">创建账户</v-btn>
                 </v-layout>
               </v-flex>
             </v-layout>
@@ -68,7 +68,7 @@
           <v-container py-0>
             <v-layout class="pb-1" align-center>
               <v-spacer></v-spacer>
-              <v-btn flat small class="primary--text" to="/signin">Already signed up?</v-btn>
+              <v-btn flat small class="primary--text" to="/signin">已注册? 登录</v-btn>
             </v-layout> 
           </v-container>
         </v-card>     
@@ -97,19 +97,19 @@ export default {
   computed: {
     emailRules () {
       return [
-        value => !!value || 'Email is required',
-        value => /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(value) || 'E-mail must be valid'
+        value => !!value || '必须输入电子邮件地址',
+        value => /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(value) || '请输入一个有效的电子邮件地址'
       ]
     },
     pswRules () {
       return [
-        value => !!value || 'Password is required',
-        value => value.length >= 8 || 'At least 8 characters'
+        value => !!value || '必须填写密码',
+        value => value.length >= 8 || '密码太短, 不得少于8个字符'
       ]
     },
     pswCompareRules () {
       return [
-        value => this.password === value || 'Passwords don\'t match'
+        value => this.password === value || '填写密码不一致'
       ]
     },
     checkPswLength () {

@@ -1,45 +1,23 @@
 <template>
-  <v-container class="carousel-wrapper px-0">
-    <div class="left arrow" ref="leftArrow" v-if="meetups.length">
-      <v-btn fab dark small color="primary">
+  <v-container class="carousel-wrapper px-0" v-if="cards">
+    <div class="left arrow" v-show="showLeftArrow">
+      <v-btn fab dark small color="primary" ref="leftArrow">
         <v-icon dark>fas fa-chevron-circle-left</v-icon>
       </v-btn>
     </div>
-    <div class="right arrow" ref="rightArrow" v-if="meetups.length">
-      <v-btn fab dark small color="primary">
+    <div class="right arrow" v-show="showRightArrow">
+      <v-btn fab dark small color="primary" ref="rightArrow">
         <v-icon dark>fas fa-chevron-circle-right</v-icon>
       </v-btn>
     </div>
     <v-container class="meetups cards-view" ref="cardsView">
       <v-layout row class="cards-row" ref="cardsRow" id="cardsRow">
-        <div v-for="item in meetups" :key="item.key" class="card-wrapper" ref="card">
-          <div class="date-wrapper">
-            <div class="date">
-              {{ getMonth(item) }} {{ getDate(item) }}
-            </div>
-            <div class="day">{{ getDay(item) }}</div>
-          </div>
-          <v-card flat class="card-item">
-            <v-card-media :src="getImgUrl(item)" height="200px" class="card-item-image">
-            </v-card-media>
-            <v-card-title primary-title class="pb-1">
-              <h3 class="mb-1 primary--text info_name">{{ item.title }}</h3>
-            </v-card-title>
-            <v-card-text class="pt-0">
-              <div class="info_desc">{{ item.description }}</div>
-            </v-card-text>
 
-            <CardButton :item="item" :showDelete="false" :initState="isUserRegistered(item)"
-            v-on:register="registerMeetup(item)" 
-            v-on:unregister="unregisterMeetup(item)" 
-            v-on:more="loadMeetup(item)"
-            v-on:edit="editMeetup(item)"
-            ></CardButton>
-          </v-card>
-        </div>
+        <Card :item="item" v-for="(item, index) in cards" :key="index + item.key" ref="card"></Card>
+
         <!-- placeholder (optional) -->
-        <div class="card-wrapper" v-if="hasPlaceholder&&meetups.length">
-          <v-card flat height="410px" class="card-item">
+        <div class="card-wrapper" v-if="hasPlaceholder&&cards">
+          <v-card flat height="418px" class="card-item">
             <v-layout justify-center align-center fill-height>
               <v-btn flat large color="primary" @click="redirect">
                 <v-icon dark left>add_circle_outline</v-icon>
@@ -55,96 +33,50 @@
 
 <script>
 /* eslint-disable */
-import CardButton from '@/components/common/button'
+import Card from '@/components/common/card'
+
 export default {
   components: {
-    CardButton
+    Card
   },
-  props: ['cards', 'hasPlaceholder', 'phText'],
+  props: {
+    cards: {
+      type: Array
+    },
+    hasPlaceholder: {
+      type: Boolean
+    },
+    phText: {
+      type: String
+    }
+  },
   data () {
     return {
-      // 
-    }
+      showLeftArrow: true,
+      showRightArrow: true
+      }
   },
   computed: {
-    meetups () {
-      return this.cards
-    }
+    // 
   },
   methods: {
-    loadMeetup (item) {
-      this.$router.push('/meetup/' + item.key)
-    },
-    editMeetup (item) {
-      this.$router.push('/meetup/' + item.key)
-    },
-    registerMeetup (item) {
-      if (this.$store.state.userModule.user) {
-        // if item.type === '公开'
-        // this.$store.dispatch('registerMeetup', item)
-        
-        // if item.type === '半公开'
-        // first send request
-        this.$store.dispatch('sendJoinRequest', item)
-        .then(() => {
-          console.log('join request sent')
-        })
-
-      } else {
-        this.$router.push('/signin')
-      }
-    },
-    unregisterMeetup (item) {
-      this.$store.dispatch('unregisterMeetup', item)
-    },
-    isUserRegistered (item) {
-      if (!this.$store.state.userModule.user) return false
-      if (!item.registeredMembers) return false
-      let uid = this.$store.state.userModule.user.uid
-      return Object.keys(item.registeredMembers).find(key => {
-        return key === uid
-      }) ?
-      true :
-      false
-    },
-    getImgUrl (item) {
-      return item.imageURLs[Object.keys(item.imageURLs)[0]]
-    },
-    getMonth (item) {
-      const Month = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
-      let index = new Date(item.date).getMonth()
-      return Month[index]
-    },
-    getDate (item) {
-      return new Date(item.date).getDate() + 1
-    },
-    getDay (item) {
-      // const Day = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
-      const Day = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期天']
-      let index = new Date(item.date).getDay()
-      return Day[index]
-    },
     redirect () {
       this.$emit('redirect')
     }
   },
-  // created () {
-  //   console.log('created hook', this.meetups.length)
-  // },
-  // mounted () {
-  //   // this.$forceUpdate()
-  //   console.log('mounted hook', this.meetups.length)
-  // },
-  updated () {
-    // console.log('updated hook', this.meetups.length)
+  created () {
+    console.log('created hook', this.cards.length)
+  },
+  mounted () {
+    console.log('updated hook', this.cards.length)
     // DOM Cache
     let view = this.$refs.cardsView,
         row = this.$refs.cardsRow,
         cards = this.$refs.card
 
-    let card = cards[0],
-        leftArrow = this.$refs.leftArrow,
-        rightArrow = this.$refs.rightArrow
+    let card = cards[0].$el,
+        leftArrow = this.$refs.leftArrow.$el,
+        rightArrow = this.$refs.rightArrow.$el
     
     let viewWidth = view.offsetWidth,
         cardWidth = card.offsetWidth,
@@ -156,25 +88,31 @@ export default {
 
     let offset = Math.floor(viewWidth / (cardWidth + 20 * 2)),
         viewLimit = Math.ceil(viewWidth / (cardWidth + 20 * 2)),
-        rowWidth = (cardWidth + 20 * 2) * cardsNum - 20 * 2 // first & list card no left/right marigin
+        rowWidth = Math.max((cardWidth + 20 * 2) * cardsNum - 20 * 2, viewWidth) // first & list card no left/right marigin
 
     let counter = 0,
         dist = 0,
         cardsLeft = cardsNum
 
-    console.log(cardsNum)
+    if (viewLimit > cardsNum) {
+      this.showLeftArrow = false
+      this.showRightArrow = false
+    }
 
     row.style.width = rowWidth + 'px'
+
+    // console.log(rowWidth)
     
-    rightArrow.addEventListener('click', () => {
+    rightArrow.addEventListener('click', (e) => {
       if (cardsLeft > viewLimit) {
         counter ++
         dist = (cardWidth + 20 * 2) * offset * counter
         row.style.transform = `translateX(${-dist}px)` 
         cardsLeft -= offset
+        // console.log(cardsLeft)
         if (cardsLeft < viewLimit) {
-          row.style.transform = `translateX(${-(rowWidth - viewWidth)}px)`
           dist = rowWidth - viewWidth
+          row.style.transform = `translateX(${-dist}px)`
         }
       } else {
         row.style.transform = `translateX(${-(rowWidth - viewWidth)}px)`
@@ -189,6 +127,10 @@ export default {
         dist = (cardWidth + 20 * 2) * offset * counter
         row.style.transform = `translateX(${-dist}px)`
         cardsLeft += offset
+        // console.log(cardsLeft)
+        if (cardsLeft === cardsNum) {
+          row.style.transform = `translateX(0px)`
+        }
       }
     })
   }
@@ -198,6 +140,7 @@ export default {
 <style lang="scss">
 .carousel-wrapper {
   position: relative;
+  width: 100%;
 
   .arrow {
     position: absolute;
@@ -230,79 +173,79 @@ export default {
 }
 
 
-.meetups {
-  .card-wrapper {
-    display: block;
-    position: relative;
-    float: left;
-    width: 288px;
-    margin: 20px;
+// .meetups {
+//   .card-wrapper {
+//     display: block;
+//     position: relative;
+//     float: left;
+//     width: 288px;
+//     margin: 20px;
 
-    &:first-child {
-      margin-left: 0;
-    }
+//     &:first-child {
+//       margin-left: 0;
+//     }
 
-    &:last-child {
-      margin-right: 0;
-    }
-  }
+//     &:last-child {
+//       margin-right: 0;
+//     }
+//   }
 
-  .date-wrapper {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    width: 70px;
-    border-radius: 5px;
-    overflow: hidden;
-    z-index: 2;
+//   .date-wrapper {
+//     position: absolute;
+//     top: 10px;
+//     left: 10px;
+//     width: 70px;
+//     border-radius: 5px;
+//     overflow: hidden;
+//     // z-index: 1;
     
-    .date,
-    .day {
-      width: 70px;
-      height: 20px;
-      line-height: 20px;
-      font-size: 12px;
-      text-align: center;
-    }
+//     .date,
+//     .day {
+//       width: 70px;
+//       height: 20px;
+//       line-height: 20px;
+//       font-size: 12px;
+//       text-align: center;
+//     }
 
-    .date {
-      background: #fff;
-    }
+//     .date {
+//       background: #fff;
+//     }
 
-    .day {
-      background: #000000;
-      color: #fff;
-      font-size: 12px;
-    }
-  }
+//     .day {
+//       background: #000000;
+//       color: #fff;
+//       font-size: 12px;
+//     }
+//   }
 
-  .card-item {
-    box-shadow: 0 5px 15px -11px rgba(0, 0, 0, 0.4);
-    border-radius: 15px !important;
+//   .card-item {
+//     box-shadow: 0 5px 15px -11px rgba(0, 0, 0, 0.4);
+//     border-radius: 15px !important;
 
-    .card-item-image {
-      border-radius: 15px 15px 0 0 !important;
-    }
+//     .card-item-image {
+//       border-radius: 15px 15px 0 0 !important;
+//     }
 
-    .info_name,
-    .info_desc {
-      overflow: hidden;
-      display: -webkit-box;
-      -webkit-box-orient: vertical;
-    }
+//     .info_name,
+//     .info_desc {
+//       overflow: hidden;
+//       display: -webkit-box;
+//       -webkit-box-orient: vertical;
+//     }
 
-    .info_name {
-      height: 50px;
-      font-size: 1.2rem;
-      -webkit-line-clamp: 2;
-    }
+//     .info_name {
+//       height: 50px;
+//       font-size: 1.2rem;
+//       -webkit-line-clamp: 2;
+//     }
 
-    .info_desc {
-      height: 60px;
-      font-size: 1rem;
-      line-height: 20px;
-      -webkit-line-clamp: 3;
-    }
-  }
-}
+//     .info_desc {
+//       height: 60px;
+//       font-size: 1rem;
+//       line-height: 20px;
+//       -webkit-line-clamp: 3;
+//     }
+//   }
+// }
 </style>
