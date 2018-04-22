@@ -91,7 +91,7 @@
               <v-layout>
                 <div class="organizer">
                   <!-- <div class="avatar" :style="avatarBgUrl"></div> -->
-                  <Avatar class="organizer-avatar" :user="user" :showName="false"
+                  <Avatar class="organizer-avatar" :user="item.organizer" :showName="false"
                   :showRedirectAndAddFriend="true"></Avatar>
                   <div class="organizer-name">{{ item.organizer.nickname }}</div>
                 </div>
@@ -359,7 +359,7 @@ export default {
       return `background-image: url("${ photoURL }")`
     },
     vancancyCount () {
-      if (this.item.registeredMembers) {
+      if (this.item) {
         let occupied = this.item.registeredMembers ? Object.keys(this.item.registeredMembers).length : 0
         return this.item.size - occupied - 1
       }
@@ -432,7 +432,7 @@ export default {
 
   .list {
     width: 100%;
-    height: 100%;
+    // height: 100%;
     padding: 0px;
     overflow: hidden;
 

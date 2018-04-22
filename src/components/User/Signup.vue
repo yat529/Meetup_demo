@@ -23,7 +23,7 @@
             <v-toolbar-title class="primary--text">加入米团, 探索身边的精彩</v-toolbar-title>
           </v-toolbar>
           <v-divider class="mb-4"></v-divider>
-          <v-form class="mb-4" ref="accSignupForm" @submit.prevent="createUser">
+          <v-form class="mb-4" ref="accSignupForm" lazy-validation @submit.prevent="createUser">
             <v-layout row>
               <v-flex xs10 offset-xs1>
                 <v-card-text class="px-4 py-4">
@@ -33,6 +33,7 @@
                     label="邮箱地址"
                     v-model="email"
                     :rules="emailRules"
+                    validate-on-blur
                   ></v-text-field>
                   <v-text-field
                     name="userPassword"
@@ -44,6 +45,7 @@
                     :append-icon-cb="() => (psw_show = !psw_show)"
                     :type="!psw_show ? 'password' : 'text'"
                     :rules="pswRules"
+                    validate-on-blur
                     counter
                   ></v-text-field>
                   <v-text-field
@@ -54,8 +56,9 @@
                     :append-icon-cb="() => (psw_check_show = !psw_check_show)"
                     :type="!psw_check_show ? 'password' : 'text'"
                     :rules="pswCompareRules"
+                    validate-on-blur
                     counter
-                    v-if="checkPswLength"
+                    v-show="checkPswLength"
                   ></v-text-field>
                 </v-card-text>
                 <v-layout justify-center>

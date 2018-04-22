@@ -20,16 +20,16 @@
                         <i class="far fa-dot-circle" v-if="type_selected === types[index]"></i>
                         <i class="far fa-circle" v-else></i>
                       </span>
-                      {{ types[index] }}
+                      {{ typesCN[index] }}
                       <input type="radio" id="mt_public" class="fake-input"
                       name="mt_type" :value="types[index]" v-model="type_selected">
                     </label>
                   </v-flex>
 
                   <v-flex class="hint" xs12 md5 v-show="type_selected">
-                    <p v-show="type_selected === '公开'">对所有人可见, 并且任何人都可以参加, 适合没有人数限制的活动</p>
-                    <p v-show="type_selected === '半公开'">对所有人可见, 但必须获得创办人授权才能参加</p>
-                    <p v-show="type_selected === '私人'">仅对创办人以及被通知的朋友可见</p>
+                    <p v-show="type_selected === 'public'">对所有人可见, 并且任何人都可以参加, 适合没有人数限制的活动</p>
+                    <p v-show="type_selected === 'personal'">对所有人可见, 但必须获得你的授权才能参加</p>
+                    <p v-show="type_selected === 'private'">仅对你以及被你邀请的朋友可见</p>
                   </v-flex>
                 </v-layout>
               </v-container>
@@ -175,25 +175,28 @@
                   </v-layout>
                 </v-container>
 
-                <v-layout row>
-                  <v-text-field
-                    label="标题"
-                    v-model="listTitle"
-                    required
-                  ></v-text-field>
-                </v-layout>
-                <v-layout row>
-                  <v-text-field
-                    label="内容"
-                    v-model="listContent"
-                    multi-line
-                  ></v-text-field>
-                </v-layout>
+                <v-form ref="detailList" lazy-validation>
+                  <v-layout row>
+                    <v-text-field
+                      label="标题"
+                      v-model="listTitle"
+                      :rules="listTitleRule"
+                      required
+                    ></v-text-field>
+                  </v-layout>
+                  <v-layout row>
+                    <v-text-field
+                      label="内容"
+                      v-model="listContent"
+                      multi-line
+                    ></v-text-field>
+                  </v-layout>
+                </v-form>
 
                 <v-layout row justify-center>
                   <v-btn round dark color="primary" @click="addToList">
-                    <v-icon small left>far fa-check-circle</v-icon>
-                    加入列表
+                    <v-icon small left>fas fa-plus-circle</v-icon>
+                    添加列表
                   </v-btn>
                 </v-layout>
               </v-container>
@@ -368,10 +371,11 @@ export default {
         title: this.listTitle,
         content: this.listContent
       }
-      this.list.push(item)
 
-      this.listTitle = ''
-      this.listContent = ''
+      if ( this.$refs.detailList.validate() ) {
+        this.list.push(item)
+        this.$refs.detailList.reset()
+      }
     }
   },
   computed: {
@@ -390,6 +394,9 @@ export default {
     },
     types () {
       return this.$store.state.meetupModule.type
+    },
+    typesCN () {
+      return this.$store.state.meetupModule.typeCN
     },
     categories () {
       return this.$store.state.meetupModule.category
@@ -412,7 +419,10 @@ export default {
         let photoURL = this.user.photoURL
         return `background-image: url("${ photoURL }")`
       }
-    }
+    },
+    listTitleRule () {
+      return [value => !!value || '必须输入标题']
+    },
   },
   created () {
     // this.$store.commit('clearLoadedMeetUp')

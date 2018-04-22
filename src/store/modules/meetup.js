@@ -4,7 +4,8 @@ import * as firebase from 'firebase'
 
 const meetup = {
   state: {
-    type: ['公开', '半公开', '私人'],
+    type: ['public', 'personal', 'private'],
+    typeCN: ['公开', '半公开', '私人'],
     category: [
       '美食', '运动', '学习', '聊天', '摄影', '游戏', '旅游', '休闲活动'
     ],

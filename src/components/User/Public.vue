@@ -121,6 +121,7 @@ export default {
         for(let key in registeredMeetups) {
           this.$store.dispatch('fetchMeetup', key)
           .then(meetup => {
+            meetup.key = key
             this.registeredMeetups.push(meetup)
           })
         }
@@ -129,6 +130,7 @@ export default {
         for(let key in createdMeetups) {
           this.$store.dispatch('fetchMeetup', key)
           .then(meetup => {
+            meetup.key = key
             this.createdMeetups.push(meetup)
           })
         }

@@ -65,7 +65,7 @@
           </div>
           <!-- origin login -->
           <div v-show="selectedDefault">     
-            <v-form class="fixedHeight" ref="accLoginForm" @submit.prevent="signInUser">
+            <v-form class="fixedHeight" ref="accLoginForm" lazy-validation @submit.prevent="signInUser">
               <v-container>
                 <v-card-text class="px-4 py-4">
                   <h3 class="primary--text title mb-3">使用米团账号登录</h3>
@@ -74,6 +74,7 @@
                     label="邮箱地址"
                     v-model="email"
                     :rules="emailRules"
+                    validate-on-blur
                   ></v-text-field>
                   <v-text-field
                     name="userPassword"
@@ -159,7 +160,7 @@ export default {
     },
     emailRules () {
       return [
-        value => /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(value) || 'E-mail must be valid'
+        value => /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(value) || '请输入一个有效的电子邮件地址'
       ]
     },
     showSuccessLoginAlert () {
