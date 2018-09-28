@@ -84,15 +84,28 @@ export default {
 
 <style lang="scss" scoped>
 .seats {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: flex-start;
+  align-items: center;
   overflow: auto;
 
+  &.center {
+    justify-content: center;
+  }
+
   .seat {
-    float: left;
-    margin-right: 15px;
+    // float: left;
+    flex: 0 0 80px;
+    padding: 10px;
+    // margin-right: 15px;
+    height: 105px;
+    overflow: hidden;
 
     .empty {
       position: relative;;
-      margin: 0 auto 10px auto;
+      margin: 0 auto;
+      top: 0;
       width: 60px;
       height: 60px;
       background: #c0c0c0;

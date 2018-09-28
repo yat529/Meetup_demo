@@ -1,8 +1,8 @@
 <template>
-  <v-layout row justify-center>
+  <v-layout row justify-center v-if="targetUser">
     <v-dialog v-model="modal" persistent max-width="400">
       <!-- <v-btn color="primary" dark slot="activator">Open Dialog</v-btn> -->
-      <div class="user-card" v-if="targetUser">
+      <div class="user-card">
         <div class="uc-close" @click.stop="close">
           <i class="fas fa-times-circle"></i>
         </div>
@@ -256,7 +256,8 @@ export default {
 <style lang="scss">
 .user-card {
   position: relative;
-  width: 400px;
+  widows: 100%;
+  max-width: 400px;
   height: 550px;
   background: #ffffff;
   border-radius: 15px;

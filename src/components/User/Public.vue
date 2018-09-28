@@ -72,14 +72,15 @@
 
 <script>
 /* eslint-disable */
-import CardCarousel from '@/components/common/cardCarousel'
-import UserCards from '@/components/common/userCards'
+// import CardCarousel from '@/components/common/cardCarousel'
+// import UserCards from '@/components/common/userCards'
 
 export default {
-  components: {
-    CardCarousel,
-    UserCards
-  },
+  // components: {
+  //   CardCarousel,
+  //   UserCards
+  // },
+  
   data () {
     return {
       target_uid: '',

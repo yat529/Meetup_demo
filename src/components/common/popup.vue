@@ -1,7 +1,7 @@
 <template>
-  <transition name="slide">
-  <div class="popup-wrapper white" v-if="popupMsg&&showPopup">
-    <v-btn icon small class="close mx-1 my-1" @click="showPopup = false">
+  <transition name="popup-slide">
+  <div class="popup-wrapper white" :class="isMobile ? 'inMobile' : ''" ref="popup" v-if="popupMsg&&showPopup">
+    <v-btn icon small class="close mx-1 my-1" @click="clearMsg">
       <v-icon small light color="brown lighten-4">far fa-times-circle</v-icon>
     </v-btn>
     <v-layout fill-height justify-center align-center>
@@ -22,6 +22,12 @@
 <script>
 /* eslint-disable */
 export default {
+  props: {
+    isMobile: {
+      type: Boolean,
+      default: false
+    }
+  },
   data () {
     return {
       showPopup: false
@@ -30,6 +36,14 @@ export default {
   computed: {
     popupMsg () {
       return this.$store.state.userModule.popupMsg
+    }
+  },
+  methods: {
+    clearMsg () {
+      if (this.showPopup) {
+        this.showPopup = false
+        this.$store.commit('clearPopupMsg')
+      }
     }
   },
   watch: {
@@ -41,7 +55,10 @@ export default {
           setTimeout(() => {
             that.showPopup = false
             that.$store.commit('clearPopupMsg')
-          }, 3000)
+          }, 8000)
+        } else {
+          console.log('sdasdas')
+          that.showPopup = false
         }
       },
       deep: true
@@ -52,15 +69,27 @@ export default {
 
 <style lang="scss">
   .popup-wrapper {
+    display: flex;
+    align-items: center;
     position: fixed;
     right: 30px;
     bottom: 30px;
     width: 330px;
-    height: 80px;
+    min-height: 80px;
     background: #eeeeee;
     border-radius: 10px;
     box-shadow: 0 2px 15px -7px rgba(0, 0, 0, 0.4);
     z-index: 99;
+
+    &.inMobile {
+      padding: 8px 3px;
+      right: 50%;
+      top: 25px;
+      bottom: auto;
+      transform: translateX(50%);
+      width: 300px;
+      min-height: 55px;
+    }
 
     .close {
       position: absolute;
@@ -71,22 +100,24 @@ export default {
     .title,
     .content {
       padding-right: 32px;
+      cursor: pointer;
     }
   }
 
-  .slide-enter-active,
-  .slide-leave-active {
+  // transition css
+  .popup-slide-enter-active,
+  .popup-slide-leave-active {
     transition: all 0.25s cubic-bezier(0.32, 0.26, 0.36, 1.25);
   }
 
-  .slide-enter,
-  .slide-leave-to {
+  .popup-slide-enter,
+  .popup-slide-leave-to {
     opacity: 0;
     transform: translateX(50%);
   }
 
-  .slide-enter-to,
-  .slide-leave {
+  .popup-slide-enter-to,
+  .popup-slide-leave {
     opacity: 1;
   }
 

@@ -3,11 +3,13 @@ import Vue from 'vue'
 
 const initMap = {
   install (Vue, config) {
+    console.log('here')
     if (!document) return
 
-    let ext
-    let apiKey = config.key
-    let libraries = config.libraries
+    let ext,
+        apiKey = config.key,
+        libraries = config.libraries,
+        language = 'en-US'
   
     if (!apiKey) return
     if (!libraries) {
@@ -15,13 +17,13 @@ const initMap = {
     } else {
       ext = `&libraries=${libraries}`
     }
-    
+
     let script = document.createElement('script')
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${ apiKey + ext }`
+    script.src = `https://maps.googleapis.com/maps/api/js?language=${language}&key=${ apiKey + ext }`
     script.type = 'text/javascript'
     document.body.appendChild(script)
   }
 }
 
 
-export {initMap}
+export default initMap

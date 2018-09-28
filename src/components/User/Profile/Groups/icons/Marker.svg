@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="50px" height="50px" viewBox="0 0 50 50" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 50 (54983) - http://www.bohemiancoding.com/sketch -->
+    <title>icon/Marker</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M23.2528958,47.0920791 C10.3879688,28.5788902 8,26.6788712 8,19.8749959 C8,10.5551642 15.6111302,3 25,3 C34.3888698,3 42,10.5551642 42,19.8749959 C42,26.6788712 39.6120313,28.5788902 26.7471042,47.0920791 C25.9028594,48.3026843 24.0970521,48.3025964 23.2528958,47.0920791 Z M25,26.9062442 C28.9120365,26.9062442 32.0833333,23.7582664 32.0833333,19.8749959 C32.0833333,15.9917253 28.9120365,12.8437476 25,12.8437476 C21.0879635,12.8437476 17.9166667,15.9917253 17.9166667,19.8749959 C17.9166667,23.7582664 21.0879635,26.9062442 25,26.9062442 Z" id="path-1"></path>
+    </defs>
+    <g id="icon/Marker" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <rect id="Rectangle-3" x="0" y="0" width="50" height="50"></rect>
+        <mask id="mask-2" fill="white">
+            <use xlink:href="#path-1"></use>
+        </mask>
+        <use id="map-marker-alt" fill="#ffffff" fill-rule="nonzero" xlink:href="#path-1"></use>
+        <g id="color/Primary" mask="url(#mask-2)" fill="#ffffff">
+            <rect id="Rectangle-2" x="0" y="0" width="50" height="50"></rect>
+        </g>
+    </g>
+</svg>

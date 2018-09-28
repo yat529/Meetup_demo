@@ -1,6 +1,5 @@
 <template>
-  <v-btn round dark color="primary" v-if="showRedirect" @click="redirect">
-    <v-icon left small>fas fa-sign-out-alt</v-icon>
+  <v-btn round dark small color="primary" v-if="showRedirect" @click="redirect">
     主页
   </v-btn>
 </template>

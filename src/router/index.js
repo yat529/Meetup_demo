@@ -5,24 +5,47 @@ import { store } from '../store'
 import * as firebase from 'firebase'
 
 // Import Page Components
-import Home from '@/components/Home'
-import Meetups from '@/components/Meetup/Meetups'
-import CreateMeetup from '@/components/Meetup/CreateMeetup'
-import LoadedMeetup from '@/components/Meetup/Meetup'
+// import Home from '@/components/Home'
+
+// import Meetups from '@/components/Meetup/Meetups'
+import Create from '@/components/Group/Create'
+import Group from '@/components/Group'
+// import CreateMeetup from '@/components/Meetup/CreateMeetup'
+// import LoadedMeetup from '@/components/Meetup/Meetup'
+
+// Group Information Page
+// import Group from '@/components/Meetup/Group'
+
+// Profile init Page
+import ProfileInit from '@/components/User/init'
+
 // Profile Page
 import Profile from '@/components/User/Profile'
-import ProfileInit from '@/components/User/init'
-import ProfileUpdate from '@/components/User/update'
-import ProfileDashboard from '@/components/User/dashboard'
-import ProfileFriends from '@/components/User/friendList'
-import ProfileCreatedMeetup from '@/components/User/createdMeetup'
-import ProfileRegisteredMeetup from '@/components/User/registeredMeetup'
-import ProfilePendingMeetup from '@/components/User/pendingMeetup'
+// import ProfileUpdate from '@/components/User/update'
+import ProfileDashboard from '@/components/User/Profile/Dashboard'
+import ProfileFriends from '@/components/User/Profile/Friends'
+import ProfileGroups from '@/components/User/Profile/Groups'
+import ProfileGroup from '@/components/User/Group'
+// import ProfileGroupSchedule from '@/components/User/Group/Detail_Schedule'
+
+// import ProfileCreatedMeetup from '@/components/User/createdMeetup'
+// import ProfileRegisteredMeetup from '@/components/User/registeredMeetup'
+// import ProfilePendingMeetup from '@/components/User/pendingMeetup'
+
 // User Public Page
 import UserPublicPage from '@/components/User/Public'
 
 import Signup from '@/components/User/Signup'
 import Signin from '@/components/User/Signin'
+import Management from '@/components/User/Management'
+
+// Account Page
+import Account from '@/components/User/Account'
+import PersonalInfo from '@/components/User/Account/personalInfo'
+import AccountManagement from '@/components/User/Account/accountManagement'
+
+// Test components
+import Test from '@/components/User/Group/test'
 
 // Config Router Guard
 let routerGuard = function (to, from, next) {
@@ -41,22 +64,27 @@ export default new Router({
   routes: [
     {
       path: '/',
-      redirect: '/meetups'
+      redirect: '/profile'
     },
     {
-      path: '/meetups',
-      name: 'Meetups',
-      component: Meetups
+      path: '/test',
+      name: 'Test',
+      component: Test
+    },
+    // {
+    //   path: '/meetups',
+    //   name: 'Meetups',
+    //   component: Meetups
+    // },
+    {
+      path: '/groups/:id',
+      name: 'Group',
+      component: Group
     },
     {
-      path: '/meetup/:id',
-      name: 'LoadedMeetup',
-      component: LoadedMeetup
-    },
-    {
-      path: '/addmeetup',
-      name: 'CreateMeetup',
-      component: CreateMeetup,
+      path: '/create_mitwan',
+      name: 'Create',
+      component: Create,
       beforeEnter: routerGuard
     },
     {
@@ -74,17 +102,29 @@ export default new Router({
           component: ProfileFriends
         },
         {
-          path: 'createdmeetup',
-          component: ProfileCreatedMeetup
+          path: 'groups',
+          component: ProfileGroups,
+          // redirect: '/profile/groups/created',
+          // children: [
+          //   {
+          //     path: 'created',
+          //     component: ProfileCreatedMeetup
+          //   },
+          //   {
+          //     path: 'registered',
+          //     component: ProfileRegisteredMeetup
+          //   },
+          //   {
+          //     path: 'pending',
+          //     component: ProfilePendingMeetup
+          //   },
+          // ]
         },
         {
-          path: 'registeredmeetup',
-          component: ProfileRegisteredMeetup
-        },
-        {
-          path: 'pendingmeetup',
-          component: ProfilePendingMeetup
-        },
+          path: 'groups/:id',
+          name: 'ProfileGroup',
+          component: ProfileGroup
+        }
       ],
       beforeEnter: routerGuard
     },
@@ -110,10 +150,34 @@ export default new Router({
       name: 'Signin',
       component: Signin
     },
+    // {
+    //   path: '/home',
+    //   name: 'Home',
+    //   component: Home
+    // },
+    // account management
     {
-      path: '/home',
-      name: 'Home',
-      component: Home
+      path: '/account',
+      name: 'Account',
+      component: Account,
+      redirect: '/account/personal_information',
+      beforeEnter: routerGuard,
+      children: [
+        {
+          path: 'personal_information',
+          component: PersonalInfo
+        },
+        {
+          path: 'account_management',
+          component: AccountManagement
+        }
+      ]
+    },
+    // handle external links
+    {
+      path: '/usermgmt',
+      name: 'Management',
+      component: Management
     }
   ],
   mode: 'history'

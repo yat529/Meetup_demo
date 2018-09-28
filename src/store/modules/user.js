@@ -1,22 +1,31 @@
 /* eslint-disable */
 import Vue from 'vue'
 import * as firebase from 'firebase'
+// import Utils from '../../plugins/utils.js'
 
 const Users = {
   state: {
     // local cache user
     user: null, // firebase user obj
     user_ref: null, // ref obj to firebase users database
-    // user_basic: null, // basic info catch
+
     notifications: {
       newFriend: [],
       newMember: [],
       newMessage: [],
       newInvitation: []
     },
+
     friends: [],
-    meetups: {},
-    popupMsg: {}
+    groups: {
+      created: [],
+      registered: [],
+      invited: [],
+      pending: [],
+      pending_member: []
+    },
+    todoList: [],
+    popupMsg: {},
   },
   getters: {},
   mutations: {
@@ -53,8 +62,38 @@ const Users = {
       state.notifications.newInvitation = list
     },
 
-    setUserMeetups (state, userMeetups) {
-      state.meetups = userMeetups
+    setUserGroups (state, userGroups) {
+      state.groups = userGroups
+    },
+
+    setSpecificUserGroups (state, {type, groups}) {
+
+      switch (type) {
+        case 'created':
+          state.groups.created = Object.assign([], state.groups.created, groups)
+          break
+        case 'registered':
+          state.groups.registered = Object.assign([], state.groups.registered, groups)
+          break
+        case 'pending':
+          state.groups.pending = Object.assign([], state.groups.pending, groups)
+          break
+        case 'invited':
+          state.groups.invited = Object.assign([], state.groups.invited, groups)
+          break
+        case 'pending_member':
+          state.groups.pending_member = Object.assign([], state.groups.pending_member, groups)
+          break
+      }
+
+    },
+
+    setTodoList (state, list) {
+      state.todoList = list
+    },
+
+    resetTodoList (state) {
+      state.todoList = []
     },
 
     setPopupMsg (state, message) {
@@ -63,9 +102,49 @@ const Users = {
 
     clearPopupMsg (state, message) {
       state.popupMsg = {}
-    }
+    },
+
   },
   actions: {
+
+    // User todo list
+    watchUserTodo (context, group_key) {
+      let user = firebase.auth().currentUser,
+          uid = user.uid
+
+      firebase.database().ref('users').child(uid + '/todo/' + group_key).on('value', data => {
+        let arr = [], 
+            list = data.val()
+        
+        for (let key in list) {
+          let item = list[key]
+          item.key = key
+
+          arr.push(item)
+        }
+
+        context.commit('setTodoList', arr)
+      })
+    },
+
+    stopWatchUserTodo (context, group_key) {
+      let user = firebase.auth().currentUser,
+          uid = user.uid
+
+      firebase.database().ref('users').child(uid + '/todo/' + group_key).off('value', () => {
+        context.commit('resetTodoList')
+        console.log('stop todo list watch')
+      })
+    },
+
+    toggleUserTodoCheck (context, {type, group_key, todo_key}) {
+      let user = firebase.auth().currentUser,
+          uid = user.uid,
+          bol = type === 'check' ? true : false
+
+      firebase.database().ref('users').child(uid + '/todo/' + group_key + '/' + todo_key + '/complete').set(bol)
+    },
+
     // Create user account
     // Sign up account ONLY happens when user choose to signup with email and password
     // once finish, return new promise with resolved user object
@@ -73,9 +152,7 @@ const Users = {
       return new Promise((resolve, reject) => {
         firebase.auth().createUserWithEmailAndPassword(user.email, user.password)
         .then(user => resolve(user))
-        .catch(error => {
-          console.log(error)
-        })
+        .catch(error => reject(error))
       })
     },
 
@@ -83,19 +160,125 @@ const Users = {
     // When user choose to signup with email and password, a seperate user data will need to
     // record in the Users database, which provide a uniform user data format with the OAuth
     // users
-    createDBUserEntry (context, user) {
+    createDBUserEntry (context, user_snap) {
       let userDBProfile = {}
       // user.providerData is an array with only one item
-      user.providerData.forEach(profile => {
+      user_snap.providerData.forEach(profile => {
         Object.keys(profile).forEach(key => {
-          userDBProfile[key] = user.providerData[0][key]
+          userDBProfile[key] = user_snap.providerData[0][key]
         })
         // NOTE: overwrite uid property
         // default uid from providerData is the email address, change to user.uid
-        userDBProfile.uid = user.uid
+        userDBProfile.uid = user_snap.uid
       })
       // return a void promise
       return firebase.database().ref('users').child(userDBProfile.uid).set(userDBProfile)
+    },
+
+    // Check user database for matching emial address
+    // used when user signup, check if email existed
+    checkDBUserEmail (context, email) {
+      let ref = firebase.database().ref('users')
+
+      return new Promise((resolve, reject) => {
+        ref.orderByChild('email').equalTo(email).once('value')
+        .then(snapshot => resolve(snapshot.val()))
+      })
+    },
+
+    // Send Verification Email
+    // Once user signed up, but not init profile
+    sendEmailVerification (context, user) {
+      if (user) {
+        return new Promise((resolve, reject) => {
+          user.sendEmailVerification()
+          .then(() => {
+            console.log('verification email sent')
+            resolve()
+          })
+          .catch(error => reject(error))
+        })
+      }
+    },
+
+    sendResetPasswordEmail (context, email) {
+      let auth = firebase.auth()
+      
+      return new Promise((resolve, reject) => {
+        auth.sendPasswordResetEmail(email)
+        .then(() => resolve())
+        .catch(error => reject(error))
+      })
+    },
+
+    // verify email
+    // used to verify user email after signup account
+    verifyEmail (context, actionCode) {
+      let auth = firebase.auth()
+
+      return new Promise((resolve, reject) => {
+        auth.applyActionCode(actionCode)
+        .then(() => resolve())
+        .catch(error => reject(error))
+      })
+    },
+
+    // reset password
+    // used when user forgot password
+    // verify if reset password action code is valid
+    verifyPasswordResetCode (context, actionCode) {
+      let auth = firebase.auth()
+
+      return new Promise((resolve, reject) => {
+        auth.verifyPasswordResetCode(actionCode)
+        .then(email => resolve(email))
+        .catch(error => reject(error))
+      })
+    },
+
+    // used once the new password is submitted
+    resetPassword (context, {actionCode, newPassword}) {
+      let auth = firebase.auth()
+
+      return new Promise((resolve, reject) => {
+        auth.confirmPasswordReset(actionCode, newPassword)
+        .then(resp => resolve(resp))
+        .catch(error => reject(error))
+      })
+    },
+
+    // re-authenticate user
+    // used before update password or email
+    reauthenticateUser (context, password) {
+      let user = firebase.auth().currentUser
+
+      return new Promise((resolve, reject) => {
+        user.reauthenticateWithCredential(password)
+        .then(() => resolve())
+        .catch(error => reject(error))
+      })
+    },
+
+    // update user password
+    updatePassword (newPassword) {
+      let user = firebase.auth().currentUser
+
+      return new Promise((resolve, reject) => {
+        user.updatePassword(newPassword)
+        .then(() => resolve())
+        .catch(error => reject(error))
+      })
+    },
+
+    // delete user
+    deleteUser (context) {
+      let user = firebase.auth().currentUser
+
+      return new Promise((resolve, reject) => {
+        user.delete()
+        .then(() => resolve())
+        .catch(error => reject(error))
+      })
     },
 
     // Check User existance
@@ -150,7 +333,7 @@ const Users = {
       return new Promise((resolve, reject) => {
         firebase.auth().signInWithEmailAndPassword(user.email, user.password)
         .then(user => resolve(user))
-        .catch(error => console.log(error))
+        .catch(error => reject(error))
       })
     },
 
@@ -211,21 +394,25 @@ const Users = {
       })
     },
 
-    // sync current user
+    // sync current user - 用
     watchUser (context, user) {
-      firebase.database().ref('users').child(user.uid).on('value', snapshot => {
-        let user = snapshot,
-            user_ref = snapshot.val()
+      let user_ref,
+          user_auth = user
+        
 
-        context.commit('signInUser', {user, user_ref})
-        context.dispatch('fetchUserMeetups', user_ref)
-        .then(userMeetups => {
-          context.commit('setUserMeetups', userMeetups)
-        })
+      firebase.database().ref('users').child(user_auth.uid).on('value', snapshot => {
+        
+        user_ref = snapshot.val()
+        console.log(user_ref)
+        user_ref.emailVerified = user_auth.emailVerified
+        user_ref.metadata = user_auth.metadata
+
+        context.commit('signInUser', {user: user_auth, user_ref: user_ref})
+
       })
     },
 
-    // stop sync
+    // stop sync - 用
     // call when user sign out
     stopUserWatch (context, user) {
       firebase.database().ref('users').child(user.uid).off('value')
@@ -237,13 +424,260 @@ const Users = {
       firebase.auth().onAuthStateChanged(user => {
         if (user) {
           context.dispatch('watchUser', user)
-          context.dispatch('watchNotification', user)
+          // context.dispatch('watchNotification', user)
         } else {
           context.commit('signOutUser')
         }
       })
     },
 
+
+
+
+    /* 
+     *-------- Load User Groups --------
+    */
+
+    // fetch user created groups - 用
+    // NOTE: if no created_groups in firebase, the groups.created will be []
+    fetchCreatedGroups (context) {
+      let groupKeys,
+          user = firebase.auth().currentUser,
+          uid = user.uid,
+          promiseArr = []
+
+      firebase.database().ref('users').child(uid).child('created_groups').once('value')
+      .then(snapshot => {
+        groupKeys = snapshot.val()
+
+        for (let key in groupKeys) {
+          promiseArr.push( context.dispatch('fetchGroup', key) )
+        }
+
+        Promise.all(promiseArr).then(results => {
+          // sync groups to store
+          context.commit('setSpecificUserGroups', { type: 'created', groups: results })
+        })
+      })
+
+    },
+
+    // fetch user registered groups - 用
+    // NOTE: if no registered_groups in firebase, the groups.registered will be []
+    fetchRegisteredGroups (context) {
+      let groupKeys,
+          user = firebase.auth().currentUser,
+          uid = user.uid,
+          promiseArr = []
+
+      firebase.database().ref('users').child(uid).child('registered_groups').once('value')
+      .then(snapshot => {
+        groupKeys = snapshot.val()
+
+        for (let key in groupKeys) {
+          promiseArr.push( context.dispatch('fetchGroup', key) )
+        }
+
+        Promise.all(promiseArr).then(results => {
+          // sync groups to store
+          context.commit('setSpecificUserGroups', { type: 'registered', groups: results })
+        })
+      })
+
+    },
+
+    // fetch user pending groups - 用
+    // NOTE: if no pending_groups in firebase, the groups.pending will be []
+    fetchPendingGroups (context) {
+      let groupKeys,
+          user = firebase.auth().currentUser,
+          uid = user.uid,
+          promiseArr = []
+
+      firebase.database().ref('users').child(uid).child('pending_groups').once('value')
+      .then(snapshot => {
+        groupKeys = snapshot.val()
+
+        for (let key in groupKeys) {
+          promiseArr.push( context.dispatch('fetchGroup', key) )
+        }
+
+        Promise.all(promiseArr).then(results => {
+          // sync groups to store
+          context.commit('setSpecificUserGroups', { type: 'pending', groups: results })
+        })
+      })
+
+    },
+
+    // fetch user invited groups - 用
+    // NOTE: if no invited_groups in firebase, the groups.invited will be []
+    fetchInvitedGroups (context) {
+      let groupKeys,
+          user = firebase.auth().currentUser,
+          uid = user.uid,
+          promiseArr = []
+
+      firebase.database().ref('users').child(uid).child('invited_groups').once('value')
+      .then(snapshot => {
+        groupKeys = snapshot.val()
+
+        for (let key in groupKeys) {
+          promiseArr.push( context.dispatch('fetchGroup', key) )
+        }
+
+        Promise.all(promiseArr).then(results => {
+          // sync groups to store
+          context.commit('setSpecificUserGroups', { type: 'invited', groups: results })
+        })
+      })
+
+    },
+    
+    // // Fetch user related meetups once when sign in
+    // // - check meetup uid for created meetup
+    // // - check meetup subscribers for registered meetup
+    // fetchUserGroups (context, user) {
+    //   let userGroups = {
+    //         created: [],
+    //         registered: [],
+    //         pending: [],
+    //         invited: []
+    //       }
+
+    //   if (!user) {
+    //     user = firebase.auth().currentUser
+    //   }
+
+    //   console.log('fetching groups for curr_user')
+
+    //   return new Promise((resolve, reject) => {
+    //     firebase.database().ref('groups').once('value')
+    //     .then(snapshots => {
+    //       snapshots.forEach(snapshot => {
+    //         let group = snapshot.val()
+    //         group.key = snapshot.key
+
+    //         // fetch created groups
+    //         if (user.uid === group.uid) {
+    //           userGroups.created.push(group)
+    //         }
+
+    //         // fetch registed groups
+    //         if (group.registeredMembers) {
+    //           let registered = Object.keys(group.registeredMembers).find(key => {
+    //             return key === user.uid
+    //           })
+    //           if (registered) {
+    //             userGroups.registered.push(group)
+    //           }
+    //         }
+
+    //         // fetch pending groups
+    //         if (group.pendingMembers) {
+    //           let pending = Object.keys(group.pendingMembers).find(key => {
+    //             return key === user.uid
+    //           })
+    //           if (pending) {
+    //             userGroups.pending.push(group)
+    //           }
+    //         }
+
+    //         // fetch invited groups
+    //         if (group.pendingInvitedMembers) {
+    //           let pendindInv = Object.keys(group.pendingInvitedMembers).find(key => {
+    //             return key === user.uid
+    //           })
+
+    //           if (pendindInv) {
+    //             userGroups.invited.push(group)
+    //           }
+    //         }
+    //       })
+    //       console.log(userGroups)
+    //       resolve(userGroups)
+    //     })
+    //     .catch(error => {
+    //       console.log(error)
+    //     })
+    //   })
+    // },
+
+
+
+    // Fetch user groups with pending member - 用
+    // For fast database query, follow this routine
+    // notification -> uid -> new_member -> group_key -> fetch group -> pending_member
+    fetchUserGroupsWithPendingMember (context) {
+      let user = firebase.auth().currentUser,
+          uid = user.uid,
+          db_ref = `notifications/${uid}/new_member/`,
+          groupKeys,
+          promiseArr = []
+
+      return new Promise ((resolve, reject) => {
+
+        firebase.database().ref(db_ref).once('value')
+        .then(snapshot => {
+          groupKeys = snapshot.val()
+
+          for (let key in groupKeys) {
+            promiseArr.push( context.dispatch('fetchGroup', key) )
+          }
+
+          Promise.all(promiseArr).then(groups => {
+            console.log(groups)
+            context.commit('setSpecificUserGroups', { type: 'pending_member', groups: groups })
+            resolve(groups)
+          })
+        })
+        .catch(error => {
+          console.log(error)
+          reject(error)
+        })
+
+      })
+    },
+
+    // Fetch user groups of invitation - 用
+    // For fast database query, follow this routine
+    // notification -> uid -> new_invitation -> group_key -> fetch group
+    fetchUserGroupsOfNewInvitation (context) {
+      let user = firebase.auth().currentUser,
+          uid = user.uid,
+          db_ref = `notifications/${uid}/new_invitation/`,
+          groupKeys,
+          promiseArr = []
+
+      return new Promise ((resolve, reject) => {
+
+        firebase.database().ref(db_ref).once('value')
+        .then(snapshot => {
+          groupKeys = snapshot.val()
+
+          for (let key in groupKeys) {
+            promiseArr.push( context.dispatch('fetchGroup', key) )
+          }
+
+          Promise.all(promiseArr).then(groups => {
+            console.log(groups)
+            context.commit('setSpecificUserGroups', { type: 'invited', groups: groups })
+            resolve(groups)
+          })
+        })
+        .catch(error => {
+          console.log(error)
+          reject(error)
+        })
+
+      })
+    },
+
+
+
+    /* 
+     * --------- User Notifications ------------
+     */
 
     // Watch for User notification
     watchNotification (context, user) {

@@ -3,7 +3,7 @@
 // map class
 function Map (element, option, input = null, cb = null) {
   this._map = null
-  this.location = null
+  this.location = null  // {lat, lng}
   this.toDB = null
   this.activeOverlays = []
   
@@ -274,27 +274,28 @@ Map.prototype.geolocate = function (cb) {
   return that
 }
 
-Map.prototype.autocomplete = function (input, btn = null, cb) {
+Map.prototype.autocomplete = function (input, resultType = null, cb) {
   if (!input) {
     console.log('Input element missing.')
     return this
   }
 
-  let that = this,
-      searchBox = new google.maps.places.SearchBox(input)
-  
-  searchBox.addListener('places_changed', () => {
-    let places = searchBox.getPlaces()
-    if (!places.length) {
-      console.log('Autocomplete fails, no places match')
-      return this
+  if (!resultType) {
+    resultType = {
+      types: ['(cities)'], 
+      componentRestrictions: { country: 'us' }
     }
+  }
 
-    getLocation(places)
+  let that = this,
+      autocomplete = new google.maps.places.Autocomplete(input, resultType)
+  
+  autocomplete.addListener('place_changed', () => {
+    let place = autocomplete.getPlace()
 
     // save & location
-    that.location = getLocation(places)
-    that.toDB = getFormatedPlace(that.location)
+    that.location = getLocation(place)
+    that.toDB = getFormatedPlace(place)
 
     // export place data with callback
     if (cb) {
@@ -302,37 +303,16 @@ Map.prototype.autocomplete = function (input, btn = null, cb) {
     }
   })
 
-  if (btn) {
-    btn.addEventListener('click', (e) => {
-      // e.preventDefault()
-      let geocoder = new google.maps.Geocoder()
-      geocoder.geocode({'address': input.value}, places => {
-        if (!places.length) {
-          console.log('Autocomplete fails, no places match')
-          return this
-        }
-  
-        getLocation(places)
-  
-        // save & location
-        that.location = getLocation(places)
-        that.toDB = getFormatedPlace(that.location)
-  
-        // export place data with callback
-        if (cb) {
-          cb(that.toDB)
-        }
-      });
-    })
-  }
-
   // helper functions
-  function getLocation (places) {
-    if (!places[0].geometry) {
-      console.log('Returned place contains no geometry');
-      return this
-    }
-    return places[0]
+  function getLocation (place) {
+    let location = {}
+
+    if (!place.geometry) return
+
+    location.lat = place.geometry.location.lat()
+    location.lng = place.geometry.location.lng()
+
+    return location
   }
 
   function getFormatedPlace (place) {
@@ -340,13 +320,14 @@ Map.prototype.autocomplete = function (input, btn = null, cb) {
     let address_details = {},
         addres_formatted = place.formatted_address,
         location = place.geometry.location,
-        name = place.name
+        name = place.name,
+        place_id = place.place_id
+
     // extract info from place if needed
-    // console.log(place)
     if (place.address_components) {
       place.address_components.forEach((component, index) => {
         switch (component.types[0]) {
-          case 'sublocality_level_1':
+          case 'locality':
             address_details['city'] = component['short_name']
             break
           case 'administrative_area_level_1':
@@ -369,17 +350,13 @@ Map.prototype.autocomplete = function (input, btn = null, cb) {
       LatLng: {
         lat: location.lat(),
         lng: location.lng()
-      }
+      },
+      place_id: place_id
     }
   }
 }
 
 Map.prototype.locate = function (option = null, showMarker = true) {
-  // clear cache
-  // if (this.marker) {
-  //   this.marker.setMap(null)
-  //   this.marker = null
-  // }
 
   let opt = option || {}
   
@@ -473,27 +450,5 @@ Overlay.prototype.open = function (map) {
 Overlay.prototype.close = function () {
   this.setMap(null)
 }
-
-// const initMap = {
-//   install (Vue, config) {
-//     if (!document) return
-
-//     let ext
-//     let apiKey = config.key
-//     let libraries = config.libraries
-  
-//     if (!apiKey) return
-//     if (!libraries) {
-//       ext = ''
-//     } else {
-//       ext = `&libraries=${libraries}`
-//     }
-    
-//     let script = document.createElement('script')
-//     script.src = `https://maps.googleapis.com/maps/api/js?key=${ apiKey + ext }`
-//     script.type = 'text/javascript'
-//     document.body.appendChild(script)
-//   }
-// }
 
 export {Map, Overlay}

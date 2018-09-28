@@ -49,14 +49,16 @@ export default {
     border: 3px solid #eeeeee;
     background-position: center;
     background-size: cover;
+    background-color: #ffffff;
   }
 
   .member-name {
     position: relative;
-    margin-bottom: 10px;
+    margin-bottom: 0px;
     width: 100%;
     text-align: center;
     font-size: 12px;
+    line-height: 20px;
   }
 }
 </style>

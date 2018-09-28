@@ -1,5 +1,5 @@
 <template>
-  <div class="usercards-wrapper">
+  <div class="usercards-wrapper" :class="isMobile ? 'inMobile' : ''">
     <div class="usercard" v-for="(user, index) in users" :key="index" @click="openModal(user.uid)"
     :class="showCSSAnimation ? 'animated-card' : ''">
       <div class="avatar" :style="getAvatarBg(user)"></div>
@@ -65,6 +65,10 @@ export default {
       default: false
     },
     showApproveMember: {
+      type: Boolean,
+      default: false
+    },
+    isMobile: {
       type: Boolean,
       default: false
     }
@@ -163,6 +167,41 @@ export default {
 
       i.checked {
         color: #4CAF50;
+      }
+    }
+  }
+
+  &.inMobile {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 5px;
+
+    .usercard {
+      flex: 0 0 70px;
+      margin: 0px;
+      width: 70px;
+      padding: 5px;
+      box-shadow: none;
+      border-radius: 0;
+
+      .avatar {
+        position: relative;
+        width: 50px;
+        height: 50px;
+        margin: 0 auto;
+      }
+      .name {
+        margin-bottom: 0px;
+        padding: 0px;
+        font-size: 13px;
+      }
+      .indicator {
+        top: 0;
+        right: 0;
+        height: 13px;
+        line-height: 13px;
+        font-size: 13px;
       }
     }
   }

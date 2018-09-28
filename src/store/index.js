@@ -5,7 +5,7 @@ import * as firebase from 'firebase'
 
 // import modules
 import user from './modules/user.js'
-import meetup from './modules/meetup.js'
+import group from './modules/group.js'
 import notification from './modules/notification.js';
 
 Vue.use(Vuex)
@@ -13,20 +13,19 @@ Vue.use(Vuex)
 export const store = new Vuex.Store({
   modules: {
     userModule: user,
-    meetupModule: meetup,
+    groupModule: group,
     notificationModule: notification
   },
   state: {
     siteName: '米团',
+
     // state
     loading: false,
-    // error: null,
-    // successLogin: false,
-    // successLogout: false,
-    // errorAlet: false,
+
     // fileloader related
     flimage: null,
     flimageTempUrl: null,
+    
     // google map related
     gmLocation: {
       address: '',
@@ -59,9 +58,11 @@ export const store = new Vuex.Store({
       // if login
       if (state.userModule.user) {
         menuItems = [
-          { icon: 'supervisor_account', title: '浏览米团', link: '/meetups' },
-          { icon: 'room', title: '发起新的米团', link: '/addmeetup' },
-          { icon: 'person', title: '账户信息', link: '/profile' }
+          { icon: 'group_add', title: '发起新的米团', link: '/create_mitwan' },
+          { icon: 'notification_important', title: '消息中心', link: '/profile/dashboard' },
+          { icon: 'star', title: '你的米团', link: '/profile/groups' },
+          { icon: 'group', title: '好友列表', link: '/profile/friends' },
+          { icon: 'settings', title: '账户管理', link: '/account' }
         ]
       }
       return menuItems
@@ -254,6 +255,11 @@ export const store = new Vuex.Store({
     //     })
     //   }
     // },
+
+    // Image URL cache
+    setURLFileCache (state, payload) {
+      state.flimageTempUrl = payload
+    },
     
     // local fileloader cache
     setFileLoaderCache (state, payload) {
@@ -312,6 +318,10 @@ export const store = new Vuex.Store({
     }
   },
   actions: {
-    // 
+    defaultLoading (context) {
+      return new Promise(resolve => {
+        setTimeout(() => resolve(), 2000)
+      })
+    }
   }
 })

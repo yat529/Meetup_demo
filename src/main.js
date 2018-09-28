@@ -19,20 +19,28 @@ import firebaseConfig from './firebase.js'
 import * as firebase from 'firebase'
 firebase.initializeApp(firebaseConfig)
 
-// init vue2-google-map
-// import * as VueGoogleMaps from 'vue2-google-maps'
-import {initMap} from './plugins/googleMapsInit.js'
+// Init google map
+import initMap from './plugins/googleMapsInit.js'
 import GoogleMapsAPIKey from './googlemapsapi.js'
-// console.log('init api')
+
 // Vue.use(initMap, {
 //   key: GoogleMapsAPIKey.key,
-//   libraries: 'places'
+//   libraries: 'geometry,places'
 // })
+
+
+// Velocity Animation
+import velocity from 'velocity-animate'
+Vue.prototype.$velocity = velocity
+
+// import Utils functions
+import utils from './plugins/utils.js'
+Vue.prototype.$utils = utils
 
 // Theme Colors
 const ThemeColors = {
   // primary: '#1976D2',
-  primary: '#a1887f',
+  primary: '#6480E6',
   secondary: '#424242',
   accent: '#82B1FF',
   error: '#FF5252',

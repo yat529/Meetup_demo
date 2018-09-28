@@ -1,25 +1,26 @@
 <template>
   <v-container px-0 py-0 class="user-list">
-    <v-layout justify-start class="user-list-toolbar">
-      <v-btn small round flat class="primary--text" :class="EditMode ? 'btn--active' : ''" @click="toggleEditMode">
+    <v-layout justify-start class="user-list-toolbar mb-3">
+      <!-- <v-btn small round flat class="primary--text" :class="EditMode ? 'btn--active' : ''" @click="toggleEditMode">
         <v-icon left small>fas fa-sliders-h</v-icon>
         多选
-      </v-btn>
+      </v-btn> -->
       <!-- actions -->
-      <v-layout justify-end align-center v-if="EditMode">
+      <v-layout justify-center align-center v-if="EditMode">
         <v-btn small round flat class="primary--text" @click="addAllToList">
           <v-icon left small>far fa-check-square</v-icon>
-          全部选择
+          {{ isMobile ? '全选' : '全部选择'}}
         </v-btn>
+        <v-spacer></v-spacer>
         <v-btn small round flat class="primary--text" v-if="list.length" @click="clearList">
           <v-icon left small>fas fa-undo-alt</v-icon>
-          清除选择
+          {{ isMobile ? '清空' : '清除选择'}}
         </v-btn>
       </v-layout>
     </v-layout>
 
-    <v-container class="mt-4">
-      <UserCards :users="users" :meetupKey="meetupKey"
+    <v-container :class="isMobile? 'px-0 py-0' : ''" mb-3>
+      <UserCards :users="users" :meetupKey="meetupKey" :isMobile="isMobile"
       :showRedirectAndAddFriend="showRedirectAndAddFriend"
       :showInviteFriend="showInviteFriend"
       :showRemoveFriend="showRemoveFriend"
@@ -32,13 +33,13 @@
       v-on:uncheck="removeFromList"></UserCards>
     </v-container>
 
-    <v-container>
+    <v-container :class="isMobile? 'px-0 py-0' : ''">
       <v-layout justify-center align-center>
-        <v-btn round dark color="green" @click="confirm">
+        <v-btn round small dark color="green" @click="confirm">
           <v-icon left small>far fa-check-circle</v-icon>
           确认
         </v-btn>
-        <v-btn round dark color="primary" @click="close">
+        <v-btn round small dark color="primary" @click="close">
           <v-icon left small>far fa-check-circle</v-icon>
           返回
         </v-btn>
@@ -87,12 +88,16 @@ export default {
     showApproveMember: {
       type: Boolean,
       default: false
+    },
+    isMobile: {
+      type: Boolean,
+      default: false
     }
   },
   data () {
     return {
       list: [],
-      EditMode: false
+      EditMode: true
     }
   },
   computed: {
@@ -149,10 +154,11 @@ export default {
 .user-list {
   position: relative;
   .user-list-toolbar {
-    position: absolute;
+    position: relative;
     top: 0;
     left: 0;
     width: 100%;
+    height: 40px;
     border-bottom: 1px solid #eeeeee;
   }
 }

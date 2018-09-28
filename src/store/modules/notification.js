@@ -30,6 +30,7 @@ const notification = {
         uid: sender.uid,
         nickname: sender.nickname,
         photoURL: sender.photoURL,
+        sex: sender.sex,
         message: message
       })
 

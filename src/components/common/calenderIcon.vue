@@ -19,6 +19,12 @@ export default {
   props: {
     date: {
       type: Object,
+      default () {
+        return {
+          month: 4,
+          day: 13
+        }
+      }
     }
   },
   computed: {

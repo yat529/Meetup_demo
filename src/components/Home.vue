@@ -1,5 +1,5 @@
 <template>
-  <div class="map-wrapper" >
+  <div class="map-wrapper" :class="isTablet ? 'offset-top-fix' : ''">
     <div class="google-map" ref="homeMap"></div>
     <!-- map controls -->
     <div id="geolocator">
@@ -22,15 +22,15 @@
     </div>
     <!-- input modal -->
     <v-layout row justify-center>
-      <v-dialog v-model="dialog" persistent max-width="350">
-        <v-card class="px-2 py-2">
-          <v-card-title class="headline">Show Nearby Meetups</v-card-title>
-          <v-card-text>Enter an address or postal code to start</v-card-text>
-          <v-layout row class="px-3 py-3">
+      <v-dialog v-model="dialog" persistent max-width="330">
+        <v-card class="px-3 py-3">
+          <v-card-title class="headline pb-0 primary--text">显示附近的小组</v-card-title>
+          <v-card-text class="pt-0 primary--text">输入ZIP CODE来搜索附近的小组</v-card-text>
+          <v-layout row class="px-3 py-0">
             <v-flex xs12>
               <v-text-field
                 name="address"
-                label="Enter address"
+                label="输入ZIP CODE"
                 id="addressInput"
                 ref="addressInput"
                 v-model="postal_code"
@@ -38,9 +38,9 @@
             </v-flex>
           </v-layout>
           <v-card-actions class="px-2">
+            <v-btn small round class="primary" ref="originAdress">确定</v-btn>
             <v-spacer></v-spacer>
-            <!-- <v-btn color="green darken-1" flat @click.native="dialog = false">Disagree</v-btn> -->
-            <v-btn color="primary" flat ref="originAdress">Enter</v-btn>
+            <v-btn small round outline color="primary" flat @click="close">取消</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -55,17 +55,27 @@ import firebase from 'firebase'
 import {Map} from '@/plugins/googleMaps'
 
 export default {
+  props: {
+    isTablet: {
+      type: Boolean,
+      default: false
+    },
+    isMobile: {
+      type: Boolean,
+      default: false
+    }
+  },
   data() {
     return {
       meetups: [],
       postal_code: '',
       dialog: false,
       map: {},
-      zoom: 13
+      zoom: 16
     }
   },
   computed: {
-    //
+    // 
   },
   methods: {
     setZoom () {
@@ -76,18 +86,30 @@ export default {
       this.map.geolocate(() => {
         this.$store.commit('setLoading', false)
       })
-    }
-  },
-  created () {
-    // firebase.database().ref('meetups')
-    // this.$store.commit('setLoading', true)
-    // this.$store.dispatch('fetchMeetups')
-    // .then(meetups => {
-    //   this.meetups = meetups
-    //   this.$store.commit('setLoading', false)
-    // })
+    },
+    close () {
+      this.dialog = false
+    },
+    getMonth (item) {
+      const Month = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月']
+      let index = new Date(item.date).getMonth()
+      return Month[index]
+    },
+    getDate (item) {
+      return new Date(item.date).getDate() + 1
+    },
+    getDay (item) {
+      const Day = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期天']
+      let index = new Date(item.date).getDay()
+      return Day[index]
+    },
   },
   mounted () {
+    this.$forceUpdate()
+  },
+  updated () {
+    let isMobile = this.isMobile
+
     this.$store.commit('setLoading', true)
     this.$store.dispatch('fetchMeetups')
     .then(meetups => {
@@ -96,7 +118,8 @@ export default {
           elem = that.$refs.homeMap,
           option = {
             zoom: this.zoom,
-            disableDefaultUI: true
+            disableDefaultUI: true,
+            gestureHandling: 'greedy'
           },
           distance,
           position = that.$store.state.gmLocation.LatLng
@@ -178,23 +201,46 @@ export default {
               seatsLeftText = seatsLeft > 0 ? '剩余' + seatsLeft + '个位置' : '小组已满'
 
           // add markers
-          if (members && size <= 10) {
+          if (members && size <= 10 && !isMobile) {
             
             members.forEach(member => {
-              console.log(member.avatar)
-              seatHtml += `<div class="seat" style="background-image: url('${member.avatar}')"></div>`
+              console.log(member.photoURL)
+              seatHtml += `<div class="seat" style="background-image: url('${member.photoURL}')"></div>`
             })
 
             for (let i = members.length; i < size - 1; i++) {
               seatHtml += `<div class="seat vacant"></div>`
             }
+          } else if (isMobile) {
+            seatHtml += `<div class="seat" style="background-image: url('${members[0].photoURL}')"></div>`
+            seatHtml += `<div class="seat vacant"><span>更多</span></div>`
           }
 
           let imageKey = Object.keys(meetup.imageURLs)[0]
+
+          console.log(isMobile)
           
           let html = `
-            <div class="cus_info_container">
-              <div class="image" style="background-image: url('${meetup.imageURLs[imageKey]}')"></div>
+            <div class="cus_info_container ${isMobile ? 'small' : ''}">
+              <div class="mini-cldr-wrapper custom-dimension-class">
+                <div class="clamp">
+                  <div class="bar"></div>
+                  <div class="bar"></div>
+                </div>
+                <div class="month red">
+                  <span>${that.getMonth(meetup)} </span>
+                </div>
+                <div class="day white">
+                  <span>${that.getDate(meetup)}日</span>
+                </div>
+              </div>
+  
+              <div class="image" style="background-image: url('${meetup.imageURLs[imageKey]}')">
+                <div class="schedule" style="display: ${isMobile? 'block' : 'none'}">
+                  <div class="time v-bar">${time}开始</div>
+                  <div class="vacancy">${seatsLeftText}</div>
+                </div>
+              </div>
               <div class="infoBox">
                 <h3 class="info_name">${meetup.title}</h3>
                 <div class="info_desc">${meetup.description}</div>
@@ -205,9 +251,8 @@ export default {
               + seatHtml +
               `
               </div>
-              <div class="schedule">
-                <div class="date bar">${date}</div>
-                <div class="time bar">${time}</div>
+              <div class="schedule" style="display: ${isMobile? 'none' : 'block'}">
+                <div class="time v-bar">${time}开始</div>
                 <div class="vacancy">${seatsLeftText}</div>
               </div>
               <div class="action">
@@ -220,7 +265,9 @@ export default {
             position: meetupLocation,
             animation: google.maps.Animation.DROP
           }
-          setTimeout(map.addMarkerOverlay(markerOpt, html), animationDelay * index)
+          console.log(markerOpt)
+          // setTimeout(, animationDelay * index)
+          map.addMarkerOverlay(markerOpt, html)
           
 
           // whether to autobound markers
@@ -253,7 +300,11 @@ export default {
   bottom: 0;
   margin: 0;
   padding: 0;
-  z-index: 1;
+  z-index: 0;
+
+  &.offset-top-fix {
+    top: 56px;
+  }
 }
 
 .google-map {
@@ -273,7 +324,11 @@ export default {
     margin: 0;
     left: 50%;
     top: 50%;
-    transform: translate(-50%, -50%)
+    transform: translate(-50%, -50%);
+
+    .btn__content {
+      box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.7)
+    }
   }
 }
 
@@ -295,7 +350,11 @@ export default {
       margin: 0;
       left: 50%;
       top: 50%;
-      transform: translate(-50%, -50%)
+      transform: translate(-50%, -50%);
+
+      .btn__content {
+        box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.7)
+      }
     }
   }
 }
@@ -308,7 +367,92 @@ export default {
   background: #eeeeee;
   border: 5px solid #ffffff;
   border-radius: 10px;
-  box-shadow: 0 2px 15px -6px rgba(0, 0, 0, 0.4)
+  box-shadow: 0 2px 15px -6px rgba(0, 0, 0, 0.4);
+
+  &.small {
+    width: 200px;
+
+    .mini-cldr-wrapper {
+      > .month,
+      > .day,
+      > .clamp {
+        min-width: 47px;
+      }
+
+      > .month {
+        min-height: 21px;
+      }
+
+      > .day {
+        min-height: 23px;
+        font-size: 13px;
+        font-weight: 400;
+      }
+
+      > .clamp {
+        min-height: 7px;
+        .bar {
+          min-height: 7px;
+        }
+      }
+    }
+
+    .image {
+      position: relative;
+      height: 120px;
+      margin-bottom: 0px;
+    }
+
+    .infoBox {
+      padding: 10px;
+    }
+
+    .seats {
+      padding: 0px 10px;
+      height: 45px;
+
+      .seat {
+        position: relative;
+        span {
+          display: block;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 30px;
+          transform: translate(-50%, -50%);
+          font-size: 13px;
+          font-weight: 300;
+          text-align: center;
+        }
+      }
+    }
+
+    .schedule {
+      position: absolute;
+      padding: 5px 10px 0px 10px;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      background: #ffffff;
+      opacity: 0.7;
+
+      > div {
+        font-size: 13px;
+        font-weight: 500;
+      }
+
+      .vacancy {
+        float: right;
+      }
+    }
+
+    .action {
+      display: flex;
+      justify-content: center;
+      padding: 10px;
+      margin-bottom: 0px;
+    }
+  }
 }
 
 .close {
@@ -389,19 +533,27 @@ export default {
 }
 
 .schedule {
+  position: relative;
   padding: 10px 20px;
+  overflow: hidden;
 
-  .date, .time, .vacancy {
-    display: inline-block;
+  .time, .vacancy {
+    float: left;
+    position: relative;
+    height: 18px;
+    line-height: 18px;
     position: relative;
     margin-left: 0;
     font-size: 13px;
     font-weight: bold;
     text-align: left;
-    vertical-align: top;
   }
 
-  .bar::after {
+  .vacancy {
+    margin-left: 20px;
+  }
+
+  .v-bar::after {
     content: "";
     position: absolute;
     width: 2px;
@@ -410,10 +562,6 @@ export default {
     right: -11px;
     transform: translateY(-50%);
     background: #fff;
-  }
-
-  .date, .time {
-    margin-right: 15px;
   }
 }
 
@@ -426,6 +574,7 @@ export default {
   .button {
     display: inline-block;
     padding: 5px 25px;
+    margin: 0px;
     border-radius: 7px;
     outline: none;
     background: #a1887f !important;
@@ -448,11 +597,72 @@ export default {
   }
 
   .join {
-    margin-right: 15px;
+    margin-right: 0px;
   }
 }
 
 
-    
+.mini-cldr-wrapper {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px -3px rgba(0, 0, 0, 0.7);
+  z-index: 2;
+
+  > .month,
+  > .day  {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: center;
+    min-width: 55px;
+  }
+
+  > .month {
+    justify-content: flex-start;
+    align-items: flex-end;
+    padding-left: 7px;
+    min-height: 23px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #ffffff;
+    border-radius: 8px 8px 0 0;
+  }
+
+  > .day {
+    min-height: 30px;
+    font-size: 16px;
+    font-weight: 500;
+    border-radius: 0 0 8px 8px;
+  }
+
+  > .clamp {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    min-width: 60px;
+    height: 20%;
+    min-height: 10px;
+    transform: translateY(-50%);
+
+    .bar {
+      position: absolute;
+      width: 10%;
+      height: 20%;
+      min-height: 10px;
+      background: #f1f1f1;
+      border-radius: 3px;
+
+      &:first-child {
+        left: 22%;
+      }
+      &:last-child {
+        right: 22%;
+      }
+    }
+  }
+}
 
 </style>
